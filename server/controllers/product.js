@@ -1,6 +1,8 @@
+const { response } = require('express')
 const Product = require('../models/product')
 const asyncHandler = require('express-async-handler')
 const slugify = require('slugify')
+const qs = require('qs')
 
 const createProduct = asyncHandler(async (req, res) => {
     if (Object.keys(req.body).length === 0) throw new Error('Missing inputs')
@@ -22,11 +24,50 @@ const getProduct = asyncHandler(async (req, res) => {
 })
 
 const getProducts = asyncHandler(async (req, res) => {
-    const products = await Product.find()
-    return res.status(200).json({
-        success: products ? true : false,
-        productData: products ? products : 'Cannot update products'
-    })
+    // console.log(req.query);
+    const queries = qs.parse(req.query);
+
+    //Tách các trường đặc biệt ra khỏi query
+    const exclufrFiles = ['limit', 'sort', 'page', 'fields']
+    exclufrFiles.forEach(el => delete queries[el])
+
+    // Format lại các operators cho đúng cú pháp mongoose
+    let queryString = JSON.stringify(queries)
+    queryString = queryString.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`)
+    const formatedQueries = JSON.parse(queryString)
+    // console.log(formatedQueries)
+
+    //Filtering 
+    if (queries?.title) formatedQueries.title = { $regex: queries.title, $options: 'i' }
+    let queryCommand = Product.find(formatedQueries)
+
+    //Sorting
+    if (req.query.sort) {
+        const sortBy = req.query.sort.split(',').join(' ')
+        queryCommand = queryCommand.sort(sortBy)
+    }
+
+    //Field limiting
+    if (req.query.fields) {
+        const fields = req.query.fields.split(',').join(' ')
+        queryCommand = queryCommand.select(fields)
+    }
+
+    queryCommand
+        .exec()
+        .then(async (response) => {
+            const counts = await Product.find(formatedQueries).countDocuments()
+
+            return res.status(200).json({
+                success: response ? true : false,
+                products: response ? response : 'Cannot update products',
+                counts
+            })
+        })
+        .catch((err) => {
+            console.error(err.message)
+            return res.status(500).json({ success: false, message: err.message })
+        })
 })
 
 const updateProduct = asyncHandler(async (req, res) => {
