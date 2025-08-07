@@ -1,11 +1,10 @@
 import { Outlet } from "react-router-dom"
-import { Header, Navigation } from '../../components'
+import { Header } from '../../components'
 
 const Public = () => {
     return (
-        <div className="w-full flex flex-col items-center">
+        <div className="w-full flex flex-col items-center bg-slate-50">
             <Header />
-            <Navigation />
             <div className="w-main">
                 <Outlet />
             </div>
