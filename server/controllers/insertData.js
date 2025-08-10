@@ -44,8 +44,6 @@ const insertCategory = asyncHandler(async (req, res) => {
 })
 
 
-
-
 module.exports = {
     insertProduct,
     insertCategory

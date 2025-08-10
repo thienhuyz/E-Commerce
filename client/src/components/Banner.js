@@ -22,7 +22,7 @@ const Banner = () => {
                 loop={true} // Cho phép lặp lại vòng carousel
             >
                 <SwiperSlide>
-                    <div className="h-[394px] w-full">
+                    <div className="h-full w-full">
                         <img
                             src="https://cdn2.cellphones.com.vn/insecure/rs:fill:690:300/q:90/plain/https://dashboard.cellphones.com.vn/storage/home-xm6-mua.jpg"
                             alt="banner-1"
@@ -31,7 +31,7 @@ const Banner = () => {
                     </div>
                 </SwiperSlide>
                 <SwiperSlide>
-                    <div className="h-[394px] w-full">
+                    <div className="h-full w-full">
                         <img
                             src="https://cdn2.cellphones.com.vn/insecure/rs:fill:690:300/q:90/plain/https://dashboard.cellphones.com.vn/storage/fujiii.jpg"
                             alt="banner-2"
@@ -40,7 +40,7 @@ const Banner = () => {
                     </div>
                 </SwiperSlide>
                 <SwiperSlide>
-                    <div className="h-[394px] w-full">
+                    <div className="h-full w-full">
                         <img
                             src="https://cdn2.cellphones.com.vn/insecure/rs:fill:690:300/q:90/plain/https://dashboard.cellphones.com.vn/storage/oppo-reno14-f-Sliding-0825.png"
                             alt="banner-3"
@@ -49,7 +49,7 @@ const Banner = () => {
                     </div>
                 </SwiperSlide>
                 <SwiperSlide>
-                    <div className="h-[394px] w-full">
+                    <div className="h-full w-full">
                         <img
                             src="https://cdn2.cellphones.com.vn/insecure/rs:fill:690:300/q:90/plain/https://dashboard.cellphones.com.vn/storage/Sliding-Xiaomi-home-2.jpg"
                             alt="banner-4"
@@ -58,7 +58,7 @@ const Banner = () => {
                     </div>
                 </SwiperSlide>
                 <SwiperSlide>
-                    <div className="h-[394px] w-full">
+                    <div className="h-full w-full">
                         <img
                             src="https://cdn2.cellphones.com.vn/insecure/rs:fill:690:300/q:90/plain/https://dashboard.cellphones.com.vn/storage/copoassushome.png"
                             alt="banner-5"
