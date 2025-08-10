@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom"
-import { Header } from '../../components'
+import { Header, Footer } from '../../components'
 
 const Public = () => {
     return (
@@ -8,6 +8,7 @@ const Public = () => {
             <div className="w-main">
                 <Outlet />
             </div>
+            <Footer />
         </div>
     )
 }

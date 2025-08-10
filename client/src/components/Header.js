@@ -19,9 +19,14 @@ const Header = () => {
                         <span className='text-white text-base'>0 Giỏ hàng</span>
                     </div>
 
-                    <div className="flex items-center justify-center px-6">
+                    <div
+                        className="flex items-center justify-center gap-2 px-6 py-2 text-base font-semibold text-white 
+             rounded-md bg-red-500 hover:bg-red-700 transition-colors"
+                    >
+                        <Link to={`/${path.LOGIN}`}>Đăng nhập</Link>
                         <FaUserCircle color="white" size={24} />
                     </div>
+
                 </div>
 
             </div>

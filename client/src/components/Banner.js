@@ -8,7 +8,7 @@ import 'swiper/css/autoplay';
 
 const Banner = () => {
     return (
-        <div className="w-full rounded-xl overflow-hidden"> {/* Bo góc và ẩn phần ảnh vượt quá */}
+        <div className="w-full rounded-3xl overflow-hidden shadow-xl"> {/* Bo góc và ẩn phần ảnh vượt quá */}
             <Swiper
                 modules={[Navigation, Pagination, Autoplay]}
                 spaceBetween={50} // Khoảng cách giữa các slide
@@ -68,32 +68,33 @@ const Banner = () => {
                 </SwiperSlide>
             </Swiper>
             <style jsx>{`
-                /* Mặc định nút sẽ ẩn */
-                .swiper-button-next, .swiper-button-prev {
-                    opacity: 0;
-                    visibility: hidden;
-                    transition: opacity 0.3s, visibility 0.3s;
-                    background-color: black; /* Nền màu đen */
-                    color: white; /* Màu chữ trắng */
-                    border-radius: 50%; /* Tạo hình tròn */
-                    width: 40px; /* Chiều rộng của nút */
-                    height: 40px; /* Chiều cao của nút */
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    font-size: 20px; /* Kích thước chữ */
-                }
+                    .swiper-button-next, .swiper-button-prev {
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.3s, visibility 0.3s;
+                background-color: rgba(0, 0, 0, 0.5); /* Nền đen nhạt */
+                color: white; /* Màu chữ trắng */
+                border-radius: 50%; /* Tạo hình tròn */
+                width: 60px; /* Chiều rộng nút lớn hơn */
+                height: 60px; /* Chiều cao nút lớn hơn */
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 28px; /* Kích thước icon lớn hơn */
+            }
 
-                /* Khi hover chuột vào vùng swiper, nút sẽ hiển thị */
-                .swiper:hover .swiper-button-next, .swiper:hover .swiper-button-prev {
-                    opacity: 1;
-                    visibility: visible;
-                }
+            /* Khi hover vào vùng swiper, nút hiển thị */
+            .swiper:hover .swiper-button-next,
+            .swiper:hover .swiper-button-prev {
+                opacity: 1;
+                visibility: visible;
+            }
 
-                /* Tùy chỉnh vị trí của nút */
-                .swiper-button-next::after, .swiper-button-prev::after {
-                    font-size: 20px; /* Điều chỉnh kích thước icon */
-                }
+            /* Tùy chỉnh kích thước icon mũi tên */
+            .swiper-button-next::after,
+            .swiper-button-prev::after {
+                font-size: 28px; /* Icon lớn hơn */
+            }
             `}</style>
         </div>
     );
