@@ -22,7 +22,7 @@ const Sidebar = () => {
     };
 
     return (
-        <div className="flex flex-col border rounded-3xl bg-white shadow-xl py-4">
+        <div className="flex flex-col border rounded-3xl bg-gradient-to-b from-[#f77b5f] to-[#ff7c7c] shadow-xl py-2">
             {categories?.map((el) => {
                 const Icon = iconMap[el.title] || MdDevicesOther; // <-- đặt ngoài JSX
                 return (
@@ -30,8 +30,8 @@ const Sidebar = () => {
                         key={createslug(el.title)}
                         to={createslug(el.title)}
                         className={({ isActive }) => isActive
-                            ? 'bg-main text-white px-5 pt-[10px] pb-[10px] text-xl ml-8 hover:text-main'
-                            : 'px-5 pt-[10px] pb-[10px] text-xl ml-8 hover:text-main'
+                            ? 'bg-main text-white px-3 pt-[10px] pb-[10px] text-xl ml-8 hover:text-main'
+                            : 'px-3 pt-[10px] pb-[10px] text-xl ml-8 hover:text-main font-semibold text-white'
                         }
                     >
                         {/* Nội dung bên trong: thêm icon nhưng GIỮ NGUYÊN CSS NavLink */}
