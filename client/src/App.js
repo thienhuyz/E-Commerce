@@ -13,9 +13,6 @@ import path from "./utils/path";
 import { getCategories } from "./store/app/asyncActions";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import AdminLayout from "./pages/admin/AdminLayout";
-import OrdersPage from "./pages/admin/OrdersPage";
-import ProductsPage from "./pages/admin/ProductsPage";
 
 function App() {
   const dispatch = useDispatch();
@@ -35,7 +32,9 @@ function App() {
           />
           <Route path={path.FAQ} element={<FAQ />} />
           <Route path={path.OUR_SERVICES} element={<Services />} />
+          <Route path={path.RESET_PASSWORD} element={<ResetPassword />} />
         </Route>
+        <Route path={path.FINAL_REGISTER} element={<FinalRegister />} />
         <Route path={path.LOGIN} element={<Login />} />
         // Admin routes
         <Route path={path.ADMIN} element={<AdminLayout />}>
@@ -47,6 +46,19 @@ function App() {
           <Route path={path.ADMIN_PRODUCTS} element={<ProductsPage />} />
         </Route>
       </Routes>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={true}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+      {/* Same as */}
+      <ToastContainer />
     </div>
   );
 }

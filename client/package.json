@@ -24,6 +24,7 @@
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
     "slick-carousel": "^1.8.1",
+    "sweetalert2": "^11.22.3",
     "swiper": "^11.2.10",
     "web-vitals": "^2.1.4"
   },

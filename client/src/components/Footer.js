@@ -1,8 +1,8 @@
-import React from "react";
-import { FaYoutube, FaFacebook, FaInstagram, FaTiktok } from "react-icons/fa";
-import { SiZalo } from "react-icons/si";
+import icons from "../utils/icons";
+
 
 const Footer = () => {
+    const { FaYoutube, FaFacebook, FaInstagram, FaTiktok, SiZalo } = icons;
     return (
         <div className="w-full bg-slate-100 text-[13px] text-gray-800">
             <div className="w-main mx-auto py-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
