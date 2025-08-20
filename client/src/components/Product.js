@@ -13,8 +13,8 @@ const Product = ({ productData, isNew, hideLabel }) => {
     return (
         <div className='w-full text-base px-2 py-2 '>
             <Link
-                className='w-full border p-[15px] flex flex-col items-center rounded-3xl shadow-sm bg-white py-6'
-                to={`/${path.DETAIL_PRODUCT}/${productData?._id}/${productData?.title}`}
+                className='w-full border p-[15px] flex flex-col items-center rounded-3xl shadow-lg bg-white py-6'
+                to={`/${productData?.category}/${productData?._id}/${productData?.title}`}
                 onMouseEnter={e => setIsShowOption(true)}
                 onMouseLeave={e => setIsShowOption(false)}
             >
@@ -45,7 +45,7 @@ const Product = ({ productData, isNew, hideLabel }) => {
                 </div>
                 <div className='flex flex-col mt-[15px] items-start gap-1 w-full'>
                     <span className='line-clamp-1 font-semibold text-base'>{productData?.title}</span>
-                    <span className='font-semibold text-base text-red-500'>{`${formatMoney(productData?.price)} VNĐ`}</span>
+                    <span className='font-semibold text-base text-red-500'>{`${formatMoney(productData?.price)}đ`}</span>
                     <span className='flex h-4'>
                         {renderStarFromNumber(productData?.totalRatings)?.map((el, index) => (
                             <span key={index}>{el}</span>

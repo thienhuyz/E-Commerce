@@ -69,7 +69,7 @@ const BestSeller = () => {
                 ))}
             </div>
             <div className='mt-4 mx[-10px] '>
-                <Slider {...settings}>
+                <Slider className='best' {...settings}>
                     {products?.map(el => (
                         <Product
                             key={el._id}

@@ -129,15 +129,12 @@ const Login = () => {
 
                     />
                     <div className='flex items-center justify-between w-full'>
+                        <Button handleOnClick={() => setIsForgotPassword(false)}> Quay lại</Button>
                         <Button
-                            name='Quay laị'
-                            handleOnClick={() => setIsForgotPassword(false)}
-                        />
-                        <Button
-                            name='Xác nhận'
                             handleOnClick={handleForgotPassword}
-                            style='px-4 py-2 rounded-md text-white bg-blue-500 text-semibold my-2'
-                        />
+                            style='px-4 py-2 rounded-md text-white bg-blue-500 text-semibold my-2'>
+                            Xác nhận
+                        </Button>
                     </div>
                 </div>
 
@@ -192,10 +189,10 @@ const Login = () => {
                         setInvalidFields={setInvalidFields}
                     />
                     <Button
-                        name={isRegister ? 'Đăng ký' : 'Đăng nhập'}
                         handleOnClick={handleSubmit}
-                        fw
-                    />
+                        fw>
+                        {isRegister ? 'Đăng ký' : 'Đăng nhập'}
+                    </Button>
                     <div className='flex items-center justify-between my-2 w-full text-sm'>
                         {!isRegister && <span onClick={() => setIsForgotPassword(true)} className='text-blue-500 hover:underline cursor-pointer'>
                             Quên mật khẩu?
@@ -211,12 +208,6 @@ const Login = () => {
                             Quay lại đăng nhập
                         </span>}
                     </div>
-                    <Link
-                        className='text-blue-500 text-sm hover:underline cursor-pointer'
-                        to={`/${path.HOME}`}
-                    >
-                        Quay lại trang chủ
-                    </Link>
 
                 </div>
             </div>

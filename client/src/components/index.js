@@ -9,4 +9,5 @@ export { default as FeatureProducts } from './FeatureProducts'
 export { default as Footer } from './Footer'
 export { default as InputField } from './InputField'
 export { default as Button } from './Button'
-
+export { default as Breadcrumb } from './Breadcrumb'
+export { default as SelectQuantity } from './SelectQuantity'

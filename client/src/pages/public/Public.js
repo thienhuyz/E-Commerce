@@ -3,7 +3,7 @@ import { Header, Footer } from '../../components'
 
 const Public = () => {
     return (
-        <div className="w-full flex flex-col items-center bg-slate-50">
+        <div className="w-full flex flex-col items-center bg-white">
             <Header />
             <div className="w-main">
                 <Outlet />
