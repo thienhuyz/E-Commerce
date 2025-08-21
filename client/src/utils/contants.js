@@ -3,27 +3,20 @@ import path from "./path";
 export const navigation = [
     {
         id: 1,
-        value: 'HOME',
+        value: 'TRANG CHỦ',
         path: `/${path.HOME}`
     },
-    {
-        id: 2,
-        value: 'PRODUCTS',
-        path: `/${path.PRODUCTS}`
-    },
-    {
-        id: 3,
-        value: 'BLOGS',
-        path: `/${path.BLOGS}`
-    },
-    {
-        id: 4,
-        value: 'OUR SERVICES',
-        path: `/${path.OUR_SERVICES}`
-    },
-    {
-        id: 5,
-        value: 'FAQ',
-        path: `/${path.FAQ}`
-    }
 ];
+
+export const colors = [
+    'Đen',
+    'Xám',
+    'Trắng',
+    'Xanh',
+]
+
+export const sorts = [
+    { id: 1, value: '-price', text: 'Giá cao đến thấp' },
+    { id: 2, value: 'price', text: 'Giá thấp đến cao' },
+];
+

@@ -4,7 +4,7 @@ const { AiOutlineStar, AiFillStar } = icons;
 
 export const createslug = string => string.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(' ').join('-');
 export const formatMoney = number => {
-    return (Number(number?.toFixed(1)) * 100)
+    return (Number(number?.toFixed(1)))
         .toLocaleString('vi-VN'); // 'vi-VN' dùng dấu . ngăn cách nghìn
 };
 

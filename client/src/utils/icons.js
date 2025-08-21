@@ -2,7 +2,7 @@ import { RiPhoneFill } from 'react-icons/ri';
 import { MdEmail, MdPhoneIphone, MdTabletMac, MdTv, MdDevicesOther } from 'react-icons/md';
 import { BsFillSuitHeartFill, BsHandbagFill } from 'react-icons/bs';
 import { FaUserCircle, FaYoutube, FaFacebook, FaInstagram, FaTiktok, FaLaptop, FaHeadphones, FaPrint, FaCamera } from 'react-icons/fa';
-import { AiFillEye, AiFillHome, AiFillStar, AiOutlineLogout, AiOutlineMenu, AiOutlineStar } from 'react-icons/ai';
+import { AiFillEye, AiFillHome, AiFillStar, AiOutlineDown, AiOutlineLogout, AiOutlineMenu, AiOutlineSearch, AiOutlineStar } from 'react-icons/ai';
 import { SiZalo } from "react-icons/si";
 import { IoEye, IoEyeOff } from 'react-icons/io5'
 
@@ -32,7 +32,9 @@ const icons = {
     MdDevicesOther,
     AiOutlineLogout,
     IoEye,
-    IoEyeOff
+    IoEyeOff,
+    AiOutlineDown,
+    AiOutlineSearch
 };
 
 export default icons;

@@ -11,3 +11,6 @@ export { default as InputField } from './InputField'
 export { default as Button } from './Button'
 export { default as Breadcrumb } from './Breadcrumb'
 export { default as SelectQuantity } from './SelectQuantity'
+export { default as SearchItem } from './SearchItem'
+export { default as InputSelect } from './InputSelect'
+
