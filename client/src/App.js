@@ -11,8 +11,19 @@ import {
 } from "./pages/public";
 import path from "./utils/path";
 import { getCategories } from "./store/app/asyncActions";
-import { useEffect } from "react";
+import { useEffect, useReducer } from "react";
 import { useDispatch } from "react-redux";
+import AdminLayout from "./pages/admin/AdminLayout";
+import FinalRegister from "./pages/public/FinalRegister";
+import ResetPassword from "./pages/public/ResetPassword";
+import OrdersPage from "./pages/admin/OrdersPage";
+import ProductsPage from "./pages/admin/ProductsPage";
+import UsersPage from "./pages/admin/UsersPage";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import CouponsPage from "./pages/admin/CouponsPage";
+import BrandsPage from "./pages/admin/BrandsPage";
+import CategoriesPage from "./pages/admin/CategoriesPage";
 
 function App() {
   const dispatch = useDispatch();
@@ -44,6 +55,13 @@ function App() {
           />
           <Route path={path.ADMIN_ORDERS} element={<OrdersPage />} />
           <Route path={path.ADMIN_PRODUCTS} element={<ProductsPage />} />
+          <Route path={path.ADMIN_USERS} element={<UsersPage />} />
+          <Route
+            path={path.ADMIN_PRODUCT_CATEGORIES}
+            element={<CategoriesPage />}
+          />
+          <Route path={path.ADMIN_COUPONS} element={<CouponsPage />} />
+          <Route path={path.ADMIN_BRANDS} element={<BrandsPage />} />
         </Route>
       </Routes>
       <ToastContainer

@@ -13,21 +13,21 @@ const OrderTabs = ({ orders = [] }) => {
       key: "processing",
       label: "Processing",
       children: (
-        <OrderTable data={orders.filter((o) => o.status === "processing")} />
+        <OrderTable data={orders.filter((o) => o.status === "Processing")} />
       ),
     },
     {
       key: "completed",
       label: "Completed",
       children: (
-        <OrderTable data={orders.filter((o) => o.status === "completed")} />
+        <OrderTable data={orders.filter((o) => o.status === "Succeed")} />
       ),
     },
     {
       key: "cancelled",
       label: "Cancelled",
       children: (
-        <OrderTable data={orders.filter((o) => o.status === "cancelled")} />
+        <OrderTable data={orders.filter((o) => o.status === "Cancelled")} />
       ),
     },
   ];

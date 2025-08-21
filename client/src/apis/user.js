@@ -1,36 +1,87 @@
-import axios from '../axios'
+import axios from "../axios";
 
-export const apiRegister = (data) => axios({
-    url: '/user/register',
-    method: 'post',
+export const apiRegister = (data) =>
+  axios({
+    url: "/user/register",
+    method: "post",
     data,
-});
+  });
 
-export const apiFinalRegister = (token) => axios({
-    url: '/user/finalregister/' + token,
-    method: 'put',
-})
+export const apiFinalRegister = (token) =>
+  axios({
+    url: "/user/finalregister/" + token,
+    method: "put",
+  });
 
+export const apiLogin = (data) =>
+  axios({
+    url: "/user/login",
+    method: "post",
+    data,
+  });
 
-export const apiLogin = (data) => axios({
-    url: '/user/login',
-    method: 'post',
-    data
-});
+export const apiForgotPassword = (data) =>
+  axios({
+    url: "/user/forgotpassword",
+    method: "post",
+    data,
+  });
 
-export const apiForgotPassword = (data) => axios({
-    url: '/user/forgotpassword',
-    method: 'post',
-    data
-})
+export const apiResetPassword = (data) =>
+  axios({
+    url: "/user/resetpassword",
+    method: "put",
+    data,
+  });
 
-export const apiResetPassword = (data) => axios({
-    url: '/user/resetpassword',
-    method: 'put',
-    data
-})
+export const apiGetCurrent = () =>
+  axios({
+    url: "/user/current",
+    method: "get",
+  });
 
-export const apiGetCurrent = () => axios({
-    url: '/user/current',
-    method: 'get',
-})
+// Get all users (Admin only)
+export const apiGetUsers = () =>
+  axios({
+    url: "/user",
+    method: "get",
+  });
+
+// Delete user (Admin only)
+export const apiDeleteUser = (uid) =>
+  axios({
+    url: `/user?uid=${uid}`,
+    method: "delete",
+  });
+
+// Update current user
+export const apiUpdateCurrent = (data) =>
+  axios({
+    url: "/user/current",
+    method: "put",
+    data,
+  });
+
+// Update address
+export const apiUpdateAddress = (data) =>
+  axios({
+    url: "/user/address",
+    method: "put",
+    data,
+  });
+
+// Update cart
+export const apiUpdateCart = (data) =>
+  axios({
+    url: "/user/cart",
+    method: "put",
+    data,
+  });
+
+// Admin update user by id
+export const apiUpdateUserByAdmin = (uid, data) =>
+  axios({
+    url: `/user/${uid}`,
+    method: "put",
+    data,
+  });

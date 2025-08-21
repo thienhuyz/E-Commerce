@@ -1,25 +1,34 @@
-// src/components/OrderTable.js
-import React from "react";
-import { Table, Tag, Select, message } from "antd";
+import React, { useState } from "react";
+import { Table, Tag, Select, message, Spin } from "antd";
 import { apiUpdateOrderStatus } from "../../apis/order";
 
-const OrderTable = ({ data }) => {
+const OrderTable = ({ data, onStatusChange }) => {
+  const [loading, setLoading] = useState(false); // state loading riêng cho Table
+
   const handleStatusChange = async (oid, newStatus) => {
+    setLoading(true); // bật spinner
     try {
       const res = await apiUpdateOrderStatus(oid, { status: newStatus });
       if (res?.success) {
         message.success("Order status updated successfully");
+        onStatusChange(oid, newStatus); // cập nhật parent state
       } else {
         message.error(res?.message || "Failed to update status");
       }
     } catch (error) {
       message.error("Error updating order status");
+    } finally {
+      setLoading(false); // tắt spinner
     }
   };
 
   const columns = [
     { title: "Order ID", dataIndex: "_id", key: "_id" },
-    { title: "Customer", dataIndex: "customerName", key: "customerName" },
+    {
+      title: "Products",
+      key: "products",
+      render: (_, record) => record.products?.length || 0,
+    },
     {
       title: "Total",
       dataIndex: "total",
@@ -32,13 +41,23 @@ const OrderTable = ({ data }) => {
       key: "status",
       render: (status) => {
         let color =
-          status === "completed"
+          status === "Succeed"
             ? "green"
-            : status === "pending"
+            : status === "Processing"
             ? "orange"
             : "red";
-        return <Tag color={color}>{status.toUpperCase()}</Tag>;
+        return <Tag color={color}>{status}</Tag>;
       },
+    },
+    {
+      title: "Coupon",
+      key: "coupon",
+      render: (_, record) =>
+        record.coupon
+          ? record.coupon.toString().length > 10
+            ? record.coupon.toString().slice(0, 10) + "..."
+            : record.coupon.toString()
+          : "-",
     },
     {
       title: "Action",
@@ -49,21 +68,25 @@ const OrderTable = ({ data }) => {
           style={{ width: 140 }}
           onChange={(value) => handleStatusChange(record._id, value)}
           options={[
-            { value: "Pending", label: "Pending" },
-            { value: "Completed", label: "Completed" },
+            { value: "Processing", label: "Processing" },
+            { value: "Succeed", label: "Succeed" },
             { value: "Cancelled", label: "Cancelled" },
           ]}
         />
       ),
     },
-    { title: "Created At", dataIndex: "createdAt", key: "createdAt" },
+    {
+      title: "Created At",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (v) => new Date(v).toLocaleString(),
+    },
   ];
 
   return (
-    <div>
-      {/* Table */}
+    <Spin spinning={loading}>
       <Table columns={columns} dataSource={data} rowKey="_id" />
-    </div>
+    </Spin>
   );
 };
 

@@ -37,7 +37,7 @@ const Sidebar = () => {
     {
       key: "3",
       icon: <UserOutlined />,
-      label: <Link to={path.ADMIN_CUSTOMERS}>Customers</Link>,
+      label: <Link to={path.ADMIN_USERS}>Users</Link>,
     },
     {
       key: "4",
@@ -52,17 +52,7 @@ const Sidebar = () => {
     {
       key: "6",
       icon: <FolderOpenOutlined />,
-      label: <Link to={path.ADMIN_PRODUCT_CATEGORIES}>Product Categories</Link>,
-    },
-    {
-      key: "7",
-      icon: <ReadOutlined />,
-      label: <Link to={path.ADMIN_BLOGS}>Blogs</Link>,
-    },
-    {
-      key: "8",
-      icon: <TagsOutlined />,
-      label: <Link to={path.ADMIN_BLOG_CATEGORIES}>Blog Categories</Link>,
+      label: <Link to={path.ADMIN_PRODUCT_CATEGORIES}>Categories</Link>,
     },
     {
       key: "9",
