@@ -1,9 +1,14 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiGetProduct } from '../../apis';
-import { Breadcrumb, SelectQuantity, Button } from '../../components';
+import { Breadcrumb, SelectQuantity, Button, Votebar, VoteOption, Comment } from '../../components';
 import Slider from "react-slick";
 import { formatMoney, renderStarFromNumber, createslug } from '../../utils/helper';
+import { apiRatings } from "../../apis";
+import { useDispatch, useSelector } from "react-redux";
+import { showModal } from '../../store/app/appSlice'
+import Swal from 'sweetalert2'
+import path from "../../utils/path";
 
 const settings = {
     dots: false,
@@ -14,12 +19,34 @@ const settings = {
 };
 
 const DetailProduct = () => {
+
     const navigate = useNavigate();
     const { pid, title, category } = useParams();
     const [product, setProduct] = useState(null);
     const [currentImage, setCurrentImage] = useState("");
     const [selectedColor, setSelectedColor] = useState("");
     const [quantity, setQuantity] = useState(1);
+    const dispatch = useDispatch()
+    const { isLoggedIn } = useSelector(state => state.user)
+    const [update, setUpdate] = useState(false)
+
+
+
+
+    const handleSubmitVoteOption = async ({ comment, score }) => {
+        if (!comment || !score) {
+            alert('Vui lòng nhận xét sản phẩm');
+            return;
+        }
+        await apiRatings({ star: score, comment, pid, updatedAt: Date.now() });
+        dispatch(showModal({ isShowModal: false, modalChildren: null }))
+        rerender()
+    };
+
+
+
+
+
 
     // [THÊM] helper: slug -> Title Case
     const slugToTitle = useCallback(
@@ -42,35 +69,45 @@ const DetailProduct = () => {
         return product?.color ? product.color.split(",").map(c => c.trim()) : [];
     }, [product]);
 
-    // Fetch + set mặc định ảnh/màu
-    useEffect(() => {
-        let canceled = false;
+    // 1) Đưa ra ngoài, bọc useCallback
+    const fetchProductData = useCallback(async () => {
+        if (!pid) return;
+        const res = await apiGetProduct(pid);
+        if (res?.success) {
+            const p = res.productData;
+            setProduct(p);
 
-        const fetchProductData = async () => {
-            if (!pid) return;
-            const res = await apiGetProduct(pid);
-            if (!canceled && res?.success) {
-                const p = res.productData;
-                setProduct(p);
+            // Ảnh & màu mặc định
+            const firstImage = p?.thumb || p?.images?.[0] || "";
+            setCurrentImage(firstImage);
+            const firstColor = p?.color ? p.color.split(",").map(c => c.trim())[0] : "";
+            setSelectedColor(firstColor || "");
 
-                // Ảnh & màu mặc định
-                const firstImage = p?.thumb || p?.images?.[0] || "";
-                setCurrentImage(firstImage);
-                const firstColor = p?.color ? p.color.split(",").map(c => c.trim())[0] : "";
-                setSelectedColor(firstColor || "");
-
-                // [TUỲ CHỌN] Chuẩn hoá URL về slug canonical nếu user vào bằng tên có dấu
-                const canonical = `/${createslug(p.category)}/${pid}/${createslug(p.title)}`;
-                const current = `/${category}/${pid}/${title}`;
-                if (category && title && canonical !== current) {
-                    navigate(canonical, { replace: true });
-                }
+            // Canonicalize URL nếu cần
+            const canonical = `/${createslug(p.category)}/${pid}/${createslug(p.title)}`;
+            const current = `/${category}/${pid}/${title}`;
+            if (category && title && canonical !== current) {
+                navigate(canonical, { replace: true });
             }
-        };
-
-        fetchProductData();
-        return () => { canceled = true; };
+        }
     }, [pid, category, title, navigate]);
+
+    // 2) Lần đầu mount hoặc khi pid/category/title đổi -> fetch
+    useEffect(() => {
+        fetchProductData();
+    }, [fetchProductData]);
+
+    // 3) Khi bạn muốn "rerender" sau khi rating thành công -> setUpdate(u => !u)
+    //    và effect này sẽ gọi lại fetch
+    useEffect(() => {
+        if (pid) fetchProductData();
+    }, [update, pid, fetchProductData]);
+
+    // 4) Hàm toggle update dùng functional set để khỏi phụ thuộc vào 'update'
+    const rerender = useCallback(() => {
+        setUpdate(u => !u);
+    }, []);
+
 
     const handleQuantity = useCallback((number) => {
         if (!Number(number) || Number(number) < 1) return;
@@ -83,12 +120,33 @@ const DetailProduct = () => {
         if (flag === 'plus') setQuantity(prev => +prev + 1);
     }, [quantity]);
 
+    const handleVoteNow = () => {
+        if (!isLoggedIn) {
+            Swal.fire({
+                text: 'Vui lòng đăng nhập trước khi đánh giá',
+                cancelButtonText: 'Quay lại',
+                confirmButtonText: 'Đăng nhập',
+                title: 'Rất tiếc!',
+                showCancelButton: true,
+            }).then((rs) => {
+                if (rs.isConfirmed) navigate(`/${path.LOGIN}`)
+            })
+        } else {
+            dispatch(showModal({
+                isShowModal: true, modalChildren: <VoteOption
+                    nameProduct={product?.title}
+                    handleSubmitVoteOption={handleSubmitVoteOption}
+                />
+            }))
+        }
+    }
+
+
     return (
         <div>
-            {/* [SỬA] dùng displayTitle/displayCategory để breadcrumb luôn đẹp và đúng */}
             <Breadcrumb title={displayTitle} category={displayCategory} />
 
-            <div className="w-main m-auto mt-4 flex">
+            <div className="w-main m-auto flex">
                 {/* Left - image + Description */}
                 <div className="flex flex-col gap-4 w-1/2 mr-12 rounded-xl">
                     <div className="border w-full justify-items-center rounded-xl shadow-lg">
@@ -228,6 +286,47 @@ ${selectedColor === color
                         <Button fw>Thêm vào giỏ hàng</Button>
                     </div>
                 </div>
+            </div>
+            <div className='flex flex-col'>
+                <div className="flex  shadow-md rounded-3xl border-2 p-6 mb-6 mt-4">
+                    <div className='flex-4 flex-col flex items-center justify-center'>
+                        <span className='font-semibold text-5xl pb-2'>{`${product?.totalRatings}`}<span className="text-3xl text-gray-300">/5</span></span>
+                        <span className='flex items-center gap-1'>
+                            {renderStarFromNumber(product?.totalRatings, 24)?.map((el, index) => (
+                                <span key={index}>{el}</span>
+                            ))}
+                        </span>
+                        <span className='text-lg pt-2'>{`${product?.ratings.length} đánh giá và nhận xét`}</span>
+                        <div className='flex items-center justify-center text-base flex-col gap-2'>
+                            <Button handleOnClick={handleVoteNow}>
+                                Viết đánh giá
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className='flex-6 flex gap-2 flex-col'>
+                        {Array.from(Array(5).keys()).reverse().map(el => (
+                            <Votebar
+                                key={el}
+                                number={el + 1}
+                                ratingTotal={product?.ratings.length}
+                                ratingCount={product?.ratings.filter(i => i.star === el + 1)?.length}
+                            />
+                        ))}
+                    </div>
+                </div>
+                <div className="flex flex-col gap-4">
+                    {product?.ratings?.map(el => (
+                        <Comment
+                            key={el._id}
+                            star={el.star}
+                            updatedAt={el.updatedAt}
+                            comment={el.comment}
+                            name={`${el.postedBy?.firstname} ${el.postedBy?.lastname} `}
+                        />
+                    ))}
+                </div>
+
             </div>
         </div>
     );

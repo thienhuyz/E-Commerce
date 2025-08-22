@@ -17,7 +17,7 @@ const FeatureProducts = () => {
             // Gọi API ngắn gọn theo từng category và ghép lại thành object
             const entries = await Promise.all(
                 titles.map(async (title) => {
-                    const res = await apiGetProducts({ category: title, limit: 5, sort: "-sold" });
+                    const res = await apiGetProducts({ category: title, limit: 4, sort: "-sold" });
                     return [title, res?.success ? res.products || [] : []];
                 })
             );

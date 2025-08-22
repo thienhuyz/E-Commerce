@@ -20,3 +20,26 @@ export const sorts = [
     { id: 2, value: 'price', text: 'Giá thấp đến cao' },
 ];
 
+export const voteOptions = [
+    {
+        id: 1,
+        text: 'Rất tệ'
+    },
+    {
+        id: 2,
+        text: 'Tệ'
+    },
+    {
+        id: 3,
+        text: 'Bình thường'
+    },
+    {
+        id: 4,
+        text: 'Tốt'
+    },
+    {
+        id: 5,
+        text: 'Tuyệt vời'
+    },
+]
+
