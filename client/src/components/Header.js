@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import path from '../utils/path';
 import Navigation from './Navigation';
 import { useDispatch, useSelector } from 'react-redux'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Fragment } from 'react'
 import { getCurrent } from '../store/user/asyncActions'
 import { logout, clearMessage } from '../store/user/userSlice'
 import Swal from 'sweetalert2'
@@ -15,6 +15,7 @@ const Header = () => {
     const { isLoggedIn, current, mes } = useSelector(state => state.user)
     const [search, setSearch] = useState('')
     const navigate = useNavigate()
+
     useEffect(() => {
         if (isLoggedIn) dispatch(getCurrent())
     }, [dispatch, isLoggedIn])
@@ -59,7 +60,14 @@ const Header = () => {
                     >
                         {isLoggedIn && current
                             ? <div className='flex gap-4 text-base items-center '>
-                                <span>{`${current?.firstname} ${current?.lastname} `}</span>
+                                <Link
+
+                                    to={+current?.role === 1111 ? `/${path.ADMIN}/${path.DASHBOARD}` : `/${path.MEMBER}/${path.PERSONAL}`}
+                                >
+
+                                    <span>{`${current?.firstname} ${current?.lastname} `}</span>
+                                </Link>
+
                                 <span
                                     className='cursor-pointer'
                                     onClick={() => dispatch(logout())}>
@@ -70,6 +78,7 @@ const Header = () => {
 
 
                     </div>
+
 
                 </div>
 

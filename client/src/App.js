@@ -7,6 +7,19 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'
 import { Modal } from './components'
+import {
+  AdminLayout,
+  ManageOrder,
+  ManageProducts,
+  ManageUser,
+  CreateProducts,
+  Dashboard
+} from './pages/admin'
+
+import {
+  MemberLayout,
+  Personal
+} from './pages/member'
 
 function App() {
   const { isShowModal, modalChildren } = useSelector(state => state.app)
@@ -26,7 +39,20 @@ function App() {
           <Route path={path.OUR_SERVICES} element={<Services />} />
           <Route path={path.PRODUCTS} element={<Products />} />
           <Route path={path.RESET_PASSWORD} element={<ResetPassword />} />
+          <Route path={path.ALL} element={<Home />} />
         </Route>
+        <Route path={path.ADMIN} element={<AdminLayout />}>
+          <Route path={path.DASHBOARD} element={<Dashboard />} />
+          <Route path={path.MANAGE_ORDER} element={<ManageOrder />} />
+          <Route path={path.MANAGE_PRODUCTS} element={<ManageProducts />} />
+          <Route path={path.MANAGE_USER} element={<ManageUser />} />
+          <Route path={path.CREATE_PRODUCTS} element={<CreateProducts />} />
+        </Route>
+
+        <Route path={path.MEMBER} element={<MemberLayout />}>
+          <Route path={path.PERSONAL} element={<Personal />} />
+        </Route>
+
         <Route path={path.FINAL_REGISTER} element={<FinalRegister />} />
         <Route path={path.LOGIN} element={<Login />} />
       </Routes>
