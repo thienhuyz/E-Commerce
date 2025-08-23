@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { useParams, useSearchParams, useNavigate, createSearchParams } from 'react-router-dom'
-import { Breadcrumb, Product, SearchItem, InputSelect } from '../../components'
+import { Breadcrumb, Product, SearchItem, InputSelect, Pagination } from '../../components'
 import { apiGetProducts } from '../../apis'
 import Masonry from 'react-masonry-css'
 import { sorts } from '../../utils/contants'
-
 import { useSelector } from 'react-redux'
 import { createslug } from '../../utils/helper'
 
@@ -26,7 +25,7 @@ const Products = () => {
     const { category: categorySlug } = useParams()
     const fetchProductsByCategory = async (queries) => {
         const response = await apiGetProducts(queries)
-        if (response.success) setProducts(response.products)
+        if (response.success) setProducts(response)
     }
 
     useEffect(() => {
@@ -36,19 +35,34 @@ const Products = () => {
             categories?.find(c => createslug(c.title) === categorySlug)?.title
         if (categoryName) queries.category = categoryName
 
+        let param = []
+        for (let i of params) param.push(i)
         let priceQuery = {}
-        const from = Number(queries.from)
-        const to = Number(queries.to)
+        for (let i of param) queries[i[0]] = i[1]
 
-        if (from > 0 && to > 0) priceQuery = { price: { gte: from, lte: to } }
-        else if (from > 0) priceQuery = { price: { gte: from } }
-        else if (to > 0) priceQuery = { price: { lte: to } }
+        if (queries.to && queries.from) {
+            priceQuery = {
+                $and: [
+                    { price: { gte: queries.from } },
+                    { price: { lte: queries.to } }
+                ]
+            }
+            delete queries.price
+        } else {
+            if (queries.from) queries.price = { gte: queries.from }
+            if (queries.to) queries.price = { lte: queries.to }
+        }
 
         delete queries.from
         delete queries.to
 
         const q = Object.keys(priceQuery).length ? { ...queries, ...priceQuery } : queries
         fetchProductsByCategory(q)
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: 'smooth'
+        })
     }, [params, categorySlug, categories])
 
 
@@ -72,11 +86,16 @@ const Products = () => {
     }, [sort])
 
     useEffect(() => {
-        navigate({
-            pathname: `/${categorySlug}`,
-            search: createSearchParams({ sort }).toString(),
-        });
-    }, [sort, categorySlug, navigate]);
+        if (sort) {
+            const base = Object.fromEntries(params.entries())
+            const next = { ...base, sort, page: 1 }
+            navigate({
+                pathname: `/${categorySlug}`,
+                search: createSearchParams(next).toString(),
+            })
+
+        }
+    }, [sort, params, categorySlug, navigate]);
 
 
     return (
@@ -84,7 +103,7 @@ const Products = () => {
 
             <Breadcrumb category={displayCategory} />
 
-            <div className='w-main border-2 shadow-sm py-6 px-10 flex justify-between mt-4 m-auto rounded-3xl'>
+            <div className='w-main border-2 shadow-md py-6 px-10 flex justify-between mt-4 m-auto rounded-3xl'>
                 <div className='w-4/5 flex-auto flex flex-col gap-3'>
                     <span className='font-semibold text-xl'>Lọc sản phẩm</span>
                     <div className='flex items-center gap-4'>
@@ -95,7 +114,7 @@ const Products = () => {
                             changeActiveFitler={changeActiveFitler}
                         />
                         <SearchItem
-                            name='Màu sản phẩm'
+                            name='Thương hiệu'
                             activeClick={activeClick}
                             changeActiveFitler={changeActiveFitler}
                         />
@@ -116,7 +135,7 @@ const Products = () => {
                     className="my-masonry-grid flex mx-[-10px]"
                     columnClassName="my-masonry-grid_column"
                 >
-                    {products?.map(el => (
+                    {products?.products?.map(el => (
                         <Product
                             key={el._id}
                             pid={el._id}
@@ -127,6 +146,11 @@ const Products = () => {
                     ))}
                 </Masonry>
             </div>
+            {<div className='w-main m-auto my-4 flex justify-end'>
+                <Pagination
+                    totalCount={products?.counts}
+                />
+            </div>}
 
             <div className='w-full h-[500px]'></div>
         </div>

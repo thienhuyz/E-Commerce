@@ -1,15 +1,24 @@
 import { memo, useState, useEffect } from 'react'
 import icons from '../utils/icons'
-import { colors } from '../utils/contants'
-import { createSearchParams, useNavigate, useParams } from 'react-router-dom'
+import { createSearchParams, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { apiGetProducts } from '../apis'
 import useDebounce from '../hooks/useDebounce'
+
+import { useSelector } from 'react-redux'
+import { createslug } from '../utils/helper'
 const { AiOutlineDown } = icons
 
 const SearchItem = ({ name, activeClick, changeActiveFitler, type = 'checkbox' }) => {
     const navigate = useNavigate()
     const { category } = useParams()
     const [selected, setSelected] = useState([])
+    const [params] = useSearchParams()
+
+    const { categories } = useSelector(state => state.app)
+    const currentCategory = categories?.find(
+        c => createslug(c.title) === category
+    )
+    const brands = currentCategory?.brand || []
 
     const [price, setPrice] = useState({
         from: '',
@@ -19,9 +28,7 @@ const SearchItem = ({ name, activeClick, changeActiveFitler, type = 'checkbox' }
 
 
     const handleSelect = (e) => {
-        const alreadyEl = selected.find(el => el === e.target.value)
-        if (alreadyEl) setSelected(prev => prev.filter(el => el !== e.target.value))
-        else setSelected(prev => [...prev, e.target.value])
+        setSelected([e.target.value])
         changeActiveFitler(null)
     }
     const fetchBestPriceProduct = async () => {
@@ -30,12 +37,22 @@ const SearchItem = ({ name, activeClick, changeActiveFitler, type = 'checkbox' }
     }
 
     useEffect(() => {
-        const params = selected.length
-            ? createSearchParams({ color: selected.join(',') }).toString()
-            : '';
+        let param = []
+        for (let i of params.entries()) param.push(i)
+        const queries = {}
+        for (let i of param) queries[i[0]] = i[1]
+        if (selected.length > 0) {
+            queries.brand = selected[0]
+            queries.page = 1
+        } else delete queries.brand
+        navigate({
+            pathname: `/${category}`,
+            search: createSearchParams(queries).toString()
+        })
+    }, [selected])
 
-        navigate({ pathname: `/${category}`, search: params }, { replace: true });
-    }, [selected, category, navigate]);
+
+
 
     useEffect(() => {
         if (type === 'input') fetchBestPriceProduct()
@@ -45,15 +62,22 @@ const SearchItem = ({ name, activeClick, changeActiveFitler, type = 'checkbox' }
     const deboucePriceTo = useDebounce(price?.to, 500)
 
     useEffect(() => {
-        const data = {}
-        if (Number(price.from) > 0) data.from = price.from
-        if (Number(price.to) > 0) data.to = price.to
-
+        let param = []
+        for (let i of params.entries()) param.push(i)
+        const queries = {}
+        for (let i of param) queries[i[0]] = i[1]
+        if (Number(price.from) > 0) queries.from = price.from
+        else delete queries.from
+        if (Number(price.to) > 0) queries.to = price.to
+        else delete queries.to
+        queries.page = 1
         navigate({
             pathname: `/${category}`,
-            search: createSearchParams(data).toString()
+            search: createSearchParams(queries).toString()
         })
     }, [deboucePriceFrom, deboucePriceTo])
+
+
 
     return (
         <div
@@ -69,18 +93,20 @@ const SearchItem = ({ name, activeClick, changeActiveFitler, type = 'checkbox' }
                         <span onClick={e => {
                             e.stopPropagation()
                             setSelected([])
+                            changeActiveFitler(null)
                         }} className='underline cursor-pointer hover:text-main'>Xoá</span>
                     </div>
                     <div onClick={e => e.stopPropagation()} className='flex flex-col gap-3 mt-4'>
-                        {colors.map((el, index) => (
+                        {brands.map((el, index) => (
                             <div key={index} className='flex items-center gap-4'>
                                 <input
-                                    type="checkbox"
+                                    type="radio"
+                                    name="brand"
                                     value={el}
                                     onChange={handleSelect}
                                     id={el}
-                                    checked={selected.some(selectedItem => selectedItem === el)}
-                                    className='form-checkbox'
+                                    checked={selected[0] === el}
+                                    className='form-radio'
                                 />
                                 <label className='capitalize text-gray-700' htmlFor={el}>{el}</label>
                             </div>

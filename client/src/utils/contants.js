@@ -8,12 +8,7 @@ export const navigation = [
     },
 ];
 
-export const colors = [
-    'Đen',
-    'Xám',
-    'Trắng',
-    'Xanh',
-]
+
 
 export const sorts = [
     { id: 1, value: '-price', text: 'Giá cao đến thấp' },
