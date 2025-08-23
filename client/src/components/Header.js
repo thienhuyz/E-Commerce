@@ -1,21 +1,31 @@
 import logo from '../assets/logo.png';
 import icons from '../utils/icons';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import path from '../utils/path';
 import Navigation from './Navigation';
 import { useDispatch, useSelector } from 'react-redux'
 import { useEffect, useState } from 'react'
 import { getCurrent } from '../store/user/asyncActions'
-import { logout } from '../store/user/userSlice'
+import { logout, clearMessage } from '../store/user/userSlice'
+import Swal from 'sweetalert2'
 
 const Header = () => {
     const { BsHandbagFill, FaUserCircle, AiOutlineLogout, AiOutlineSearch } = icons
     const dispatch = useDispatch()
-    const { isLoggedIn, current } = useSelector(state => state.user)
+    const { isLoggedIn, current, mes } = useSelector(state => state.user)
     const [search, setSearch] = useState('')
+    const navigate = useNavigate()
     useEffect(() => {
         if (isLoggedIn) dispatch(getCurrent())
     }, [dispatch, isLoggedIn])
+
+    useEffect(() => {
+        if (mes) Swal.fire('Rất tiếc!', mes, 'info').then(() => {
+            dispatch(clearMessage())
+            navigate(`/${path.LOGIN}`)
+        })
+    }, [mes])
+
     return (
         <div className="w-full bg-main flex justify-center mb-4">
             <div className="w-main flex justify-between h-[72px] py-[35px] items-center">
@@ -47,7 +57,7 @@ const Header = () => {
                         className="cursor-pointer flex items-center justify-center gap-2 px-6 py-2 text-base font-semibold text-white 
              rounded-md bg-red-500 hover:bg-red-700 transition-colors"
                     >
-                        {isLoggedIn
+                        {isLoggedIn && current
                             ? <div className='flex gap-4 text-base items-center '>
                                 <span>{`${current?.firstname} ${current?.lastname} `}</span>
                                 <span
