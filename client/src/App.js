@@ -18,7 +18,10 @@ import {
 
 import {
   MemberLayout,
-  Personal
+  Personal,
+  MyCart,
+  Wishlist,
+  History
 } from './pages/member'
 
 function App() {
@@ -51,6 +54,9 @@ function App() {
 
         <Route path={path.MEMBER} element={<MemberLayout />}>
           <Route path={path.PERSONAL} element={<Personal />} />
+          <Route path={path.MY_CART} element={<MyCart />} />
+          <Route path={path.WISHLIST} element={<Wishlist />} />
+          <Route path={path.HISTORY} element={<History />} />
         </Route>
 
         <Route path={path.FINAL_REGISTER} element={<FinalRegister />} />

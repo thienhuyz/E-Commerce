@@ -15,6 +15,8 @@ const Header = () => {
     const { isLoggedIn, current, mes } = useSelector(state => state.user)
     const [search, setSearch] = useState('')
     const navigate = useNavigate()
+    const [isShowOption, setIsShowOption] = useState(false);
+
 
     useEffect(() => {
         if (isLoggedIn) dispatch(getCurrent())
@@ -26,6 +28,18 @@ const Header = () => {
             navigate(`/${path.LOGIN}`)
         })
     }, [mes])
+
+    useEffect(() => {
+        const handleClickoutOptions = (e) => {
+            const profile = document.getElementById('profile')
+            if (profile && !profile.contains(e.target)) setIsShowOption(false)
+        }
+
+        document.addEventListener('click', handleClickoutOptions)
+        return () => document.removeEventListener('click', handleClickoutOptions)
+    }, [])
+
+
 
     return (
         <div className="w-full bg-main flex justify-center mb-4">
@@ -55,26 +69,46 @@ const Header = () => {
                     </div>
 
                     <div
-                        className="cursor-pointer flex items-center justify-center gap-2 px-6 py-2 text-base font-semibold text-white 
+                        className="cursor-pointer flex items-center justify-center gap-2 py-2  text-base font-semibold text-white 
              rounded-md bg-red-500 hover:bg-red-700 transition-colors"
                     >
                         {isLoggedIn && current
-                            ? <div className='flex gap-4 text-base items-center '>
-                                <Link
+                            ? <div
+                                className='flex gap-4 text-base items-center cursor-pointer  justify-center px-6 relative '
+                                onClick={() => setIsShowOption(prev => !prev)}
+                                id='profile'
+                            >
+                                <span className='flex text-lg'>{`${current?.firstname} ${current?.lastname}`} <FaUserCircle className='ml-4' color="white" size={30} /></span>
 
-                                    to={+current?.role === 1111 ? `/${path.ADMIN}/${path.DASHBOARD}` : `/${path.MEMBER}/${path.PERSONAL}`}
-                                >
+                                {isShowOption &&
+                                    (
+                                        <div onClick={e => e.stopPropagation()} className="absolute flex-col flex m-auto top-[30px] left-[140px] bg-red-500 border min-w-[140px] py-2 z-50 rounded-xl">
+                                            <Link
+                                                className="p-2 w-full hover:bg-red-700"
+                                                to={`${path.MEMBER}/${path.PERSONAL}`}
+                                            >
+                                                Trang cá nhân
+                                            </Link>
 
-                                    <span>{`${current?.firstname} ${current?.lastname} `}</span>
-                                </Link>
+                                            {+current.role === 1111 && (
+                                                <Link
+                                                    className="p-2 w-full hover:bg-red-700"
+                                                    to={`${path.ADMIN}/${path.DASHBOARD}`}
+                                                >
+                                                    Trang quản lý
+                                                </Link>
+                                            )}
 
-                                <span
-                                    className='cursor-pointer'
-                                    onClick={() => dispatch(logout())}>
-                                    <AiOutlineLogout color="white" size={24} />
-                                </span>
+                                            <span
+                                                onClick={() => dispatch(logout())}
+                                                className="p-2 w-full hover:bg-red-700 flex"
+                                            >
+                                                Đăng xuất <AiOutlineLogout className='ml-2' color="white" size={20} />
+                                            </span>
+                                        </div>
+                                    )}
                             </div>
-                            : <Link className='cursor-pointer flex gap-4 text-lg items-center' to={`/${path.LOGIN}`}>Đăng nhập <FaUserCircle color="white" size={24} /></Link>}
+                            : <Link className='cursor-pointer flex mx-4 text-lg items-center' to={`/${path.LOGIN}`}>Đăng nhập <FaUserCircle className='ml-4' color="white" size={30} /></Link>}
 
 
                     </div>

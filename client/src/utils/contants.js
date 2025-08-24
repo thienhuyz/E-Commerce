@@ -1,4 +1,7 @@
 import path from "./path";
+import { FaAddressCard } from "react-icons/fa6";
+import { BsCartCheckFill } from "react-icons/bs";
+import { FaHistory, FaHeart } from "react-icons/fa";
 
 export const navigation = [
     {
@@ -48,3 +51,34 @@ export const roles = [
         value: 'User',
     },
 ];
+
+export const memberSidebar = [
+    {
+        id: 1,
+        type: 'SINGLE',
+        text: 'Thông tin cá nhân',
+        path: `/${path.MEMBER}/${path.PERSONAL}`,
+        icon: <FaAddressCard size={20} />,
+    },
+    {
+        id: 2,
+        type: 'SINGLE',
+        text: 'Giỏ hàng của tôi',
+        path: `/${path.MEMBER}/${path.MY_CART}`,
+        icon: <BsCartCheckFill size={20} />,
+    },
+    {
+        id: 3,
+        type: 'SINGLE',
+        text: 'Lịch sử mua hàng',
+        path: `/${path.MEMBER}/${path.HISTORY}`,
+        icon: <FaHistory size={20} />,
+    },
+    {
+        id: 4,
+        type: 'SINGLE',
+        text: 'Sản phẩm yêu thích',
+        path: `/${path.MEMBER}/${path.WISHLIST}`,
+        icon: <FaHeart size={20} />,
+    },
+]

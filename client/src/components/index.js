@@ -21,4 +21,7 @@ export { default as Comment } from './Comment'
 export { default as PagiItem } from './PagiItem'
 export { default as Pagination } from './Pagination'
 export { default as Loading } from './Loading'
+export { default as MemberSidebar } from './member/MemberSidebar'
+export { default as InputForm } from './InputForm'
+export { default as Button2 } from './Button2'
 

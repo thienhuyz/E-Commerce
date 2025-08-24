@@ -34,7 +34,7 @@ const icons = {
     IoEye,
     IoEyeOff,
     AiOutlineDown,
-    AiOutlineSearch
+    AiOutlineSearch,
 };
 
 export default icons;
