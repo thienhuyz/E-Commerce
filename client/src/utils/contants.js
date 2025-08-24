@@ -36,5 +36,15 @@ export const voteOptions = [
         id: 5,
         text: 'Tuyệt vời'
     },
-]
+];
 
+export const roles = [
+    {
+        code: 1111,
+        value: 'Admin',
+    },
+    {
+        code: 2222,
+        value: 'User',
+    },
+];

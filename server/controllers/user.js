@@ -5,6 +5,8 @@ const jwt = require('jsonwebtoken')
 const sendMail = require('../utils/sendMail')
 const crypto = require('crypto')
 const makeToken = require('uniqid')
+const qs = require('qs')
+
 
 const register = asyncHandler(async (req, res) => {
     const { email, password, firstname, lastname, mobile } = req.body;
@@ -177,11 +179,56 @@ const resetPassWord = asyncHandler(async (req, res) => {
 })
 
 const getUsers = asyncHandler(async (req, res) => {
-    const response = await User.find().select('-refreshToken -password -role')
-    return res.status(200).json({
-        success: response ? true : false,
-        user: response
-    })
+    const queries = qs.parse(req.query);
+
+    //Tách các trường đặc biệt ra khỏi query
+    const exclufrFiles = ['limit', 'sort', 'page', 'fields']
+    exclufrFiles.forEach(el => delete queries[el])
+
+    // Format lại các operators cho đúng cú pháp mongoose
+    let queryString = JSON.stringify(queries)
+    queryString = queryString.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`)
+    const restQueries = JSON.parse(queryString)
+    let formatedQueries = {}
+
+
+    // Filtering
+    if (queries?.name) restQueries.name = { $regex: queries.name, $options: 'i' }
+    let queryCommand = User.find(formatedQueries)
+
+    //Sorting
+    if (req.query.sort) {
+        const sortBy = req.query.sort.split(',').join(' ')
+        queryCommand = queryCommand.sort(sortBy)
+    }
+
+    //Field limiting
+    if (req.query.fields) {
+        const fields = req.query.fields.split(',').join(' ')
+        queryCommand = queryCommand.select(fields)
+    }
+
+    //Pagination
+    const page = +req.query.page || 1
+    const limit = +req.query.limit || process.env.LIMIT_PRODUCTS
+    const skip = (page - 1) * limit
+    queryCommand.skip(skip).limit(limit)
+
+    queryCommand
+        .exec()
+        .then(async (response) => {
+            const counts = await User.find(formatedQueries).countDocuments()
+
+            return res.status(200).json({
+                success: response ? true : false,
+                counts,
+                users: response ? response : 'Cannot update users'
+            })
+        })
+        .catch((err) => {
+            console.error(err.message)
+            return res.status(500).json({ success: false, message: err.message })
+        })
 })
 
 const deleteUser = asyncHandler(async (req, res) => {
