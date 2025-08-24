@@ -1,11 +1,18 @@
-// src/pages/admin/ProductsPage.jsx
-import { useEffect, useState } from "react";
-import { apiGetProducts, apiDeleteProduct } from "../../apis/product";
+// src/pages/admin/ManageProducts.jsx
+import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import {
+  apiGetProducts,
+  apiDeleteProduct,
+  apiCreateProduct,
+  apiUpdateProduct,
+} from "../../apis/product";
 
 import StatCard from "../../components/admin/StatCard";
 import FilterBar from "../../components/admin/FilterBar";
 import ProductTable from "../../components/admin/ProductTable";
 import ProductForm from "../../components/admin/ProductForm";
+
 import {
   ShoppingOutlined,
   CheckCircleOutlined,
@@ -15,9 +22,8 @@ import {
 } from "@ant-design/icons";
 import { Button, message, Modal } from "antd";
 
-const ProductsPage = () => {
+const ManageProducts = () => {
   const [products, setProducts] = useState([]);
-
   const [stats, setStats] = useState({
     total: 0,
     inStock: 0,
@@ -34,7 +40,17 @@ const ProductsPage = () => {
   });
   const [filters, setFilters] = useState({});
 
+  // Lấy categories từ Redux
+  const { categories } = useSelector((state) => state.app);
 
+  // ✅ Gom brand từ categories -> [{ _id, title }]
+  const brands = useMemo(() => {
+    const set = new Set();
+    categories?.forEach((c) => {
+      (c?.brand || []).forEach((name) => set.add(String(name)));
+    });
+    return Array.from(set).map((name) => ({ _id: name, title: name }));
+  }, [categories]);
 
   // Load products
   const fetchProducts = async (page = 1, pageSize = 10, extraFilters = {}) => {
@@ -65,6 +81,7 @@ const ProductsPage = () => {
 
   useEffect(() => {
     fetchProducts(pagination.current, pagination.pageSize, filters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Filter
@@ -103,8 +120,6 @@ const ProductsPage = () => {
   const handleDeleteProduct = async (product) => {
     try {
       const res = await apiDeleteProduct(product._id);
-      console.log("Response xóa sản phẩm:", res);
-
       if (res.success) {
         message.success(`Xóa sản phẩm "${res.productData.title}" thành công!`);
         fetchProducts(pagination.current, pagination.pageSize, filters);
@@ -113,9 +128,21 @@ const ProductsPage = () => {
       }
     } catch (err) {
       console.error("Lỗi khi xóa sản phẩm:", err);
-      message.error(
-        err.response?.data?.message || "Có lỗi xảy ra khi xóa sản phẩm!"
-      );
+      message.error(err.response?.data?.message || "Có lỗi xảy ra khi xóa sản phẩm!");
+    }
+  };
+
+  // Submit từ ProductForm (parent lo API)
+  const handleSubmitProduct = async (payload, productId) => {
+    // NOTE:
+    // - payload.category là _id (chuẩn như category Select)
+    // - payload.brand là string (đã map ở ProductForm)
+    if (productId) {
+      const res = await apiUpdateProduct(productId, payload);
+      if (!res?.success) throw new Error(res?.message || "Cập nhật thất bại");
+    } else {
+      const res = await apiCreateProduct(payload);
+      if (!res?.success) throw new Error(res?.message || "Tạo mới thất bại");
     }
   };
 
@@ -123,44 +150,21 @@ const ProductsPage = () => {
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">Quản lý sản phẩm</h2>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleAddProduct}
-        >
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddProduct}>
           Thêm sản phẩm mới
         </Button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-6">
-        <StatCard
-          title="Tổng sản phẩm"
-          value={stats.total}
-          icon={<ShoppingOutlined />}
-          color="#1890ff"
-        />
-        <StatCard
-          title="Còn hàng"
-          value={stats.inStock}
-          icon={<CheckCircleOutlined />}
-          color="#52c41a"
-        />
-        <StatCard
-          title="Hết hàng"
-          value={stats.outOfStock}
-          icon={<CloseCircleOutlined />}
-          color="#ff4d4f"
-        />
-        <StatCard
-          title="Bán chạy"
-          value={stats.bestSellers}
-          icon={<FireOutlined />}
-          color="#fa8c16"
-        />
+        <StatCard title="Tổng sản phẩm" value={stats.total} icon={<ShoppingOutlined />} color="#1890ff" />
+        <StatCard title="Còn hàng" value={stats.inStock} icon={<CheckCircleOutlined />} color="#52c41a" />
+        <StatCard title="Hết hàng" value={stats.outOfStock} icon={<CloseCircleOutlined />} color="#ff4d4f" />
+        <StatCard title="Bán chạy" value={stats.bestSellers} icon={<FireOutlined />} color="#fa8c16" />
       </div>
 
       {/* FilterBar */}
+      <FilterBar categories={categories} onFilter={handleFilter} />
 
       {/* ProductTable */}
       <ProductTable
@@ -181,7 +185,9 @@ const ProductsPage = () => {
       >
         <ProductForm
           product={editingProduct}
-
+          categories={categories}
+          brands={brands}
+          onSubmit={handleSubmitProduct}
           onSuccess={() => {
             setIsModalVisible(false);
             fetchProducts(pagination.current, pagination.pageSize, filters);
@@ -192,4 +198,4 @@ const ProductsPage = () => {
   );
 };
 
-export default ProductsPage;
+export default ManageProducts;

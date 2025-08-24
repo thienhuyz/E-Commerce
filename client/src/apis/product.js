@@ -16,7 +16,6 @@ export const apiRatings = (data) => axios({
     method: 'put',
     data
 })
-// Tạo mới sản phẩm (admin)
 export const apiCreateProduct = (data) =>
     axios({
         url: "/product/",

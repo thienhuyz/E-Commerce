@@ -1,60 +1,84 @@
 // src/components/admin/ProductForm.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Input, Select, Button, message, Upload, InputNumber } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import {
-  apiCreateProduct,
-  apiUpdateProduct,
-  apiUploadProductImages,
-} from "../../apis/product";
 
 const { TextArea } = Input;
 
-const ProductForm = ({ product, categories = [], brands = [], onSuccess }) => {
+/**
+ * Props:
+ * - product: object | null
+ * - categories: [{ _id, title, brand: string[] }]
+ * - brands: [{ _id, title }]              // ✅ làm giống category
+ * - onSubmit: (payload, productId) => Promise<void> | void
+ * - onSuccess: () => void
+ */
+const ProductForm = ({ product, categories = [], brands = [], onSubmit, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [thumbFile, setThumbFile] = useState([]);
   const [fileList, setFileList] = useState([]);
+
+  // Lưu category = _id ; brand = option value (ở đây dùng _id luôn cho đồng nhất)
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     price: undefined,
-    category: undefined,
-    brand: undefined,
+    category: undefined, // _id
+    brand: undefined,    // _id (thực chất là name), sẽ map -> string khi submit
     quantity: undefined,
     sold: undefined,
     color: "",
   });
 
+  // Tìm _id category từ product.category (có thể là title hoặc _id)
+  const resolveCategoryId = (prodCat) => {
+    if (!prodCat) return undefined;
+    const byId = categories.find((c) => c._id === prodCat);
+    if (byId) return byId._id;
+    const byTitle = categories.find((c) => c.title === prodCat);
+    return byTitle?._id ?? undefined;
+  };
+
+  // Tìm option.brand._id từ product.brand (string)
+  const resolveBrandId = (prodBrand) => {
+    if (!prodBrand) return undefined;
+    const opt = brands.find((b) => b._id === prodBrand || b.title === prodBrand);
+    return opt?._id ?? undefined;
+  };
+
   useEffect(() => {
     if (product) {
       setFormData({
         title: product.title || "",
-        description: product.description?.join("\n") || "",
+        description: Array.isArray(product.description)
+          ? product.description.join("\n")
+          : (product.description || ""),
         price: product.price ?? undefined,
-        category: product.category || undefined,
-        brand: product.brand || undefined,
+        category: resolveCategoryId(product.category),
+        brand: resolveBrandId(product.brand), // ✅ map về option value
         quantity: product.quantity ?? undefined,
         sold: product.sold ?? undefined,
         color: product.color || "",
       });
 
-      if (product.thumb) {
-        setThumbFile([
-          { uid: "-1", name: "thumb.jpg", status: "done", url: product.thumb },
-        ]);
-      }
+      setThumbFile(
+        product.thumb
+          ? [{ uid: "-1", name: "thumb.jpg", status: "done", url: product.thumb }]
+          : []
+      );
 
-      if (product.images?.length) {
-        setFileList(
-          product.images.map((img, idx) => ({
+      setFileList(
+        Array.isArray(product.images)
+          ? product.images.map((img, idx) => ({
             uid: String(idx),
             name: `image-${idx}.jpg`,
             status: "done",
             url: img,
           }))
-        );
-      }
+          : []
+      );
     } else {
+      // reset khi tạo mới
       setFormData({
         title: "",
         description: "",
@@ -68,7 +92,7 @@ const ProductForm = ({ product, categories = [], brands = [], onSuccess }) => {
       setThumbFile([]);
       setFileList([]);
     }
-  }, [product]);
+  }, [product, categories, brands]);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -77,51 +101,37 @@ const ProductForm = ({ product, categories = [], brands = [], onSuccess }) => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      // validate
-      if (!formData.title) return message.error("Tên sản phẩm là bắt buộc");
-      if (!formData.price && formData.price !== 0)
-        return message.error("Giá là bắt buộc");
-      if (!formData.category) return message.error("Danh mục là bắt buộc");
-      if (!formData.brand) return message.error("Thương hiệu là bắt buộc");
+      if (!formData.title) { message.error("Tên sản phẩm là bắt buộc"); return; }
+      if (formData.price === undefined || formData.price === null) { message.error("Giá là bắt buộc"); return; }
+      if (!formData.category) { message.error("Danh mục là bắt buộc"); return; }
+      if (!formData.brand) { message.error("Thương hiệu là bắt buộc"); return; }
 
-      // Xử lý description: tách theo line breaks thực sự
-      let descArray = [];
-      if (formData.description) {
-        // tách theo \r\n hoặc \n hoặc \r
-        descArray = formData.description
-          .split(/\r?\n/)
-          .map((line) => line.trim())
-          .filter((line) => line.length > 0);
-      }
+      // description -> array
+      const description = (formData.description || "")
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean);
 
-      const payload = { ...formData, description: descArray };
+      // ✅ Map brand option -> string (API cần string)
+      const brandObj = brands.find((b) => b._id === formData.brand);
+      const brand = brandObj?.title || formData.brand; // fallback nếu _id chính là name
 
-      console.log("Payload description array:", payload.description);
+      const payload = {
+        ...formData,
+        description,
+        brand,            // string
+      };
 
-      let res;
-      if (product?._id) {
-        res = await apiUpdateProduct(product._id, payload);
-      } else {
-        res = await apiCreateProduct(payload);
-      }
+      await onSubmit?.(payload, product?._id);
 
-      if (res?.success) {
-        const pid = product?._id || res.createProduct?._id;
-        // upload images...
-        message.success(
-          product?._id
-            ? "Cập nhật sản phẩm thành công!"
-            : "Tạo sản phẩm thành công!"
-        );
-        onSuccess?.();
-      } else {
-        message.error(res?.message || "Lưu sản phẩm thất bại!");
-      }
+      message.success(product?._id ? "Cập nhật sản phẩm thành công!" : "Tạo sản phẩm thành công!");
+      onSuccess?.();
     } catch (err) {
-      console.error("Error saving product:", err);
-      message.error("Có lỗi xảy ra: " + err.message);
+      console.error("Save product error:", err);
+      message.error(err?.message || "Lưu sản phẩm thất bại!");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -132,6 +142,7 @@ const ProductForm = ({ product, categories = [], brands = [], onSuccess }) => {
         onChange={(e) => handleChange("title", e.target.value)}
         style={{ marginBottom: 10 }}
       />
+
       <TextArea
         placeholder="Mô tả (mỗi dòng 1 mục)"
         value={formData.description || ""}
@@ -139,39 +150,42 @@ const ProductForm = ({ product, categories = [], brands = [], onSuccess }) => {
         rows={4}
         style={{ marginBottom: 10 }}
       />
+
       <InputNumber
         placeholder="Giá"
         value={formData.price}
         onChange={(value) => handleChange("price", value)}
         style={{ marginBottom: 10, width: "100%" }}
+        min={0}
       />
+
       <InputNumber
         placeholder="Số lượng"
         value={formData.quantity}
         onChange={(value) => handleChange("quantity", value)}
         style={{ marginBottom: 10, width: "100%" }}
+        min={0}
       />
-      <InputNumber
-        placeholder="Đã bán"
-        value={formData.sold}
-        onChange={(value) => handleChange("sold", value)}
-        style={{ marginBottom: 10, width: "100%" }}
-      />
+
       <Input
         placeholder="Màu sắc"
         value={formData.color || ""}
         onChange={(e) => handleChange("color", e.target.value)}
         style={{ marginBottom: 10 }}
       />
+
+      {/* Danh mục: như cũ, value là _id */}
       <Select
         placeholder="Danh mục"
         value={formData.category || undefined}
         onChange={(value) => handleChange("category", value)}
         style={{ marginBottom: 10, width: "100%" }}
         allowClear
+        showSearch
+        optionFilterProp="children"
       >
         {categories.map((c) => (
-          <Select.Option key={c._id} value={c.title}>
+          <Select.Option key={c._id} value={c._id}>
             {c.title}
           </Select.Option>
         ))}
@@ -183,14 +197,17 @@ const ProductForm = ({ product, categories = [], brands = [], onSuccess }) => {
         onChange={(value) => handleChange("brand", value)}
         style={{ marginBottom: 10, width: "100%" }}
         allowClear
+        showSearch
+        optionFilterProp="children"
       >
         {brands.map((b) => (
-          <Select.Option key={b._id} value={b.title}>
+          <Select.Option key={b._id} value={b._id}>
             {b.title}
           </Select.Option>
         ))}
       </Select>
 
+      {/* Thumb */}
       <Upload
         listType="picture-card"
         fileList={thumbFile}
@@ -201,6 +218,7 @@ const ProductForm = ({ product, categories = [], brands = [], onSuccess }) => {
         {thumbFile.length < 1 && "Chọn ảnh thumb"}
       </Upload>
 
+      {/* Images */}
       <Upload
         multiple
         listType="picture"
