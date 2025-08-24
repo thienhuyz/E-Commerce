@@ -24,4 +24,5 @@ export { default as Loading } from './Loading'
 export { default as MemberSidebar } from './member/MemberSidebar'
 export { default as InputForm } from './InputForm'
 export { default as Button2 } from './Button2'
+export { default as Cart } from './Cart'
 

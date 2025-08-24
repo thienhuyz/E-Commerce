@@ -1,12 +1,13 @@
 import { Route, Routes } from 'react-router-dom'
-import { Login, Home, Public, Products, FAQ, Services, DetailProduct, Blogs, FinalRegister, ResetPassword } from './pages/public'
+import { Login, Home, Public, Products, FAQ, Services, DetailProduct, Blogs, FinalRegister, ResetPassword, DetailCart } from './pages/public'
 import path from './utils/path'
 import { getCategories } from './store/app/asyncActions';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'
-import { Modal } from './components'
+import { Modal, Cart } from './components'
+import { showCart } from './store/app/appSlice';
 import {
   AdminLayout,
   ManageOrder,
@@ -25,13 +26,18 @@ import {
 } from './pages/member'
 
 function App() {
-  const { isShowModal, modalChildren } = useSelector(state => state.app)
+  const { isShowModal, modalChildren, isShowCart } = useSelector(state => state.app)
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(getCategories())
   }, [])
   return (
     <div className="font-main relative">
+      {isShowCart && <div onClick={() => dispatch(showCart())} className='absolute inset-0 bg-overlay z-50 flex justify-end'>
+        <Cart />
+      </div>}
+
+
       {isShowModal && <Modal>{modalChildren}</Modal>}
       <Routes>
         <Route path={path.PUBLIC} element={<Public />}>
@@ -42,6 +48,7 @@ function App() {
           <Route path={path.OUR_SERVICES} element={<Services />} />
           <Route path={path.PRODUCTS} element={<Products />} />
           <Route path={path.RESET_PASSWORD} element={<ResetPassword />} />
+          <Route path={path.DETAIL_CART} element={<DetailCart />} />
           <Route path={path.ALL} element={<Home />} />
         </Route>
         <Route path={path.ADMIN} element={<AdminLayout />}>
@@ -54,7 +61,7 @@ function App() {
 
         <Route path={path.MEMBER} element={<MemberLayout />}>
           <Route path={path.PERSONAL} element={<Personal />} />
-          <Route path={path.MY_CART} element={<MyCart />} />
+          <Route path={path.MY_CART} element={<MyCart id='cart' />} />
           <Route path={path.WISHLIST} element={<Wishlist />} />
           <Route path={path.HISTORY} element={<History />} />
         </Route>

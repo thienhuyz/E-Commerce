@@ -8,15 +8,17 @@ import { useEffect, useState, Fragment } from 'react'
 import { getCurrent } from '../store/user/asyncActions'
 import { logout, clearMessage } from '../store/user/userSlice'
 import Swal from 'sweetalert2'
+import { BsCartCheckFill } from "react-icons/bs";
+import withBaseComponent from '../hocs/withBaseComponent';
+import { showCart } from '../store/app/appSlice';
 
 const Header = () => {
-    const { BsHandbagFill, FaUserCircle, AiOutlineLogout, AiOutlineSearch } = icons
+    const { FaUserCircle, AiOutlineLogout, AiOutlineSearch } = icons
     const dispatch = useDispatch()
     const { isLoggedIn, current, mes } = useSelector(state => state.user)
     const [search, setSearch] = useState('')
     const navigate = useNavigate()
     const [isShowOption, setIsShowOption] = useState(false);
-
 
     useEffect(() => {
         if (isLoggedIn) dispatch(getCurrent())
@@ -48,7 +50,7 @@ const Header = () => {
                     <img src={logo} alt="Logo" className="w-[220px] object-contain mb-2" />
                 </Link>
                 <Navigation />
-                <div className="relative max-w-[420px] w-full">
+                <div className="relative max-w-[360px] w-full">
                     <AiOutlineSearch
                         size={20}
                         className="absolute left-3 top-1/2 -translate-y-1/2"
@@ -59,14 +61,16 @@ const Header = () => {
                         onChange={(e) => setSearch(e.target.value)}
                         type="text"
                         placeholder="Bạn muốn mua gì hôm nay?"
-                        className="w-full h-10 pl-10 pr-4 rounded-full bg-white placeholder:text-gray-400 outline-none"
+                        className="w-[360px] h-10 pl-10 pr-4 rounded-full bg-white placeholder:text-gray-400 outline-none"
                     />
                 </div>
                 <div className='flex text-[13px]'>
-                    <div className="cursor-pointer flex items-center justify-center gap-2 px-8 font-semibold ">
-                        <BsHandbagFill size="16" color="white" />
-                        <span className='text-white text-lg'>0 Giỏ hàng</span>
-                    </div>
+                    {isLoggedIn && current ? <div onClick={() => dispatch(showCart())}
+                        className="cursor-pointer w-[220px] flex items-center justify-center gap-2 px-8 font-semibold ">
+                        <BsCartCheckFill size="28" color="white" />
+                        <span className='text-lg text-white'>{`${current?.cart?.length || 0} sản phẩm`}</span>
+                    </div> : <div className='w-[220px]'></div>}
+
 
                     <div
                         className="cursor-pointer flex items-center justify-center gap-2 py-2  text-base font-semibold text-white 
@@ -121,4 +125,4 @@ const Header = () => {
     )
 }
 
-export default Header
+export default withBaseComponent(Header)

@@ -1,10 +1,9 @@
 import React from 'react'
 
-const MyCart = () => {
+const MyCart = (props) => {
+    console.log(props)
     return (
-        <div>
-            b
-        </div>
+        <div>MyCart</div>
     )
 }
 

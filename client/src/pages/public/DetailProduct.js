@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
-import { apiGetProduct } from '../../apis';
+import { apiGetProduct, apiRatings, apiUpdateCart } from '../../apis';
 import { Breadcrumb, SelectQuantity, Button, Votebar, VoteOption, Comment } from '../../components';
 import Slider from "react-slick";
 import { formatMoney, renderStarFromNumber, createslug } from '../../utils/helper';
-import { apiRatings } from "../../apis";
 import { useDispatch, useSelector } from "react-redux";
-import { showModal } from '../../store/app/appSlice'
-import Swal from 'sweetalert2'
+import { showModal, showCart } from '../../store/app/appSlice';
+import { getCurrent } from '../../store/user/asyncActions';
+import Swal from 'sweetalert2';
 import path from "../../utils/path";
 
 const settings = {
@@ -19,19 +19,16 @@ const settings = {
 };
 
 const DetailProduct = () => {
-
     const navigate = useNavigate();
     const { pid, title, category } = useParams();
     const [product, setProduct] = useState(null);
     const [currentImage, setCurrentImage] = useState("");
     const [selectedColor, setSelectedColor] = useState("");
     const [quantity, setQuantity] = useState(1);
-    const dispatch = useDispatch()
-    const { isLoggedIn } = useSelector(state => state.user)
-    const [update, setUpdate] = useState(false)
-
-
-
+    const [isAdding, setIsAdding] = useState(false);
+    const dispatch = useDispatch();
+    const { isLoggedIn } = useSelector(state => state.user);
+    const [update, setUpdate] = useState(false);
 
     const handleSubmitVoteOption = async ({ comment, score }) => {
         if (!comment || !score) {
@@ -39,22 +36,15 @@ const DetailProduct = () => {
             return;
         }
         await apiRatings({ star: score, comment, pid, updatedAt: Date.now() });
-        dispatch(showModal({ isShowModal: false, modalChildren: null }))
-        rerender()
+        dispatch(showModal({ isShowModal: false, modalChildren: null }));
+        rerender();
     };
 
-
-
-
-
-
-    // [THÊM] helper: slug -> Title Case
     const slugToTitle = useCallback(
         (s) => s?.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
         []
     );
 
-    // [THÊM] Tiêu đề/breadcrumb hiển thị: ưu tiên dữ liệu thật từ server
     const displayTitle = useMemo(
         () => product?.title || slugToTitle(title),
         [product, title, slugToTitle]
@@ -64,12 +54,10 @@ const DetailProduct = () => {
         [product, category, slugToTitle]
     );
 
-    // Tách màu "Xanh, Đen, Xám" -> ["Xanh", "Đen", "Xám"]
     const colors = useMemo(() => {
         return product?.color ? product.color.split(",").map(c => c.trim()) : [];
     }, [product]);
 
-    // 1) Đưa ra ngoài, bọc useCallback
     const fetchProductData = useCallback(async () => {
         if (!pid) return;
         const res = await apiGetProduct(pid);
@@ -77,13 +65,11 @@ const DetailProduct = () => {
             const p = res.productData;
             setProduct(p);
 
-            // Ảnh & màu mặc định
             const firstImage = p?.thumb || p?.images?.[0] || "";
             setCurrentImage(firstImage);
             const firstColor = p?.color ? p.color.split(",").map(c => c.trim())[0] : "";
             setSelectedColor(firstColor || "");
 
-            // Canonicalize URL nếu cần
             const canonical = `/${createslug(p.category)}/${pid}/${createslug(p.title)}`;
             const current = `/${category}/${pid}/${title}`;
             if (category && title && canonical !== current) {
@@ -92,33 +78,22 @@ const DetailProduct = () => {
         }
     }, [pid, category, title, navigate]);
 
-    // 2) Lần đầu mount hoặc khi pid/category/title đổi -> fetch
-    useEffect(() => {
-        fetchProductData();
-    }, [fetchProductData]);
-
-    // 3) Khi bạn muốn "rerender" sau khi rating thành công -> setUpdate(u => !u)
-    //    và effect này sẽ gọi lại fetch
-    useEffect(() => {
-        if (pid) fetchProductData();
-    }, [update, pid, fetchProductData]);
-
-    // 4) Hàm toggle update dùng functional set để khỏi phụ thuộc vào 'update'
-    const rerender = useCallback(() => {
-        setUpdate(u => !u);
-    }, []);
-
+    useEffect(() => { fetchProductData(); }, [fetchProductData]);
+    useEffect(() => { if (pid) fetchProductData(); }, [update, pid, fetchProductData]);
+    const rerender = useCallback(() => setUpdate(u => !u), []);
 
     const handleQuantity = useCallback((number) => {
-        if (!Number(number) || Number(number) < 1) return;
-        setQuantity(number);
+        const n = Number(number);
+        if (!Number.isFinite(n) || n < 1) return;
+        setQuantity(n);
     }, []);
-
     const handleChangeQuantity = useCallback((flag) => {
-        if (flag === 'minus' && quantity === 1) return;
-        if (flag === 'minus') setQuantity(prev => +prev - 1);
-        if (flag === 'plus') setQuantity(prev => +prev + 1);
-    }, [quantity]);
+        setQuantity(prev => {
+            if (flag === 'minus') return prev > 1 ? prev - 1 : 1;
+            if (flag === 'plus') return prev + 1;
+            return prev;
+        });
+    }, []);
 
     const handleVoteNow = () => {
         if (!isLoggedIn) {
@@ -129,18 +104,65 @@ const DetailProduct = () => {
                 title: 'Rất tiếc!',
                 showCancelButton: true,
             }).then((rs) => {
-                if (rs.isConfirmed) navigate(`/${path.LOGIN}`)
-            })
+                if (rs.isConfirmed) navigate(`/${path.LOGIN}`);
+            });
         } else {
             dispatch(showModal({
                 isShowModal: true, modalChildren: <VoteOption
                     nameProduct={product?.title}
                     handleSubmitVoteOption={handleSubmitVoteOption}
                 />
-            }))
+            }));
         }
-    }
+    };
 
+    // Thêm vào giỏ hàng - không dùng toast
+    const handleAddToCart = async () => {
+        if (!product?._id) return;
+
+        if (!isLoggedIn) {
+            Swal.fire({
+                text: 'Bạn cần đăng nhập để thêm vào giỏ hàng',
+                cancelButtonText: 'Quay lại',
+                confirmButtonText: 'Đăng nhập',
+                title: 'Thông báo',
+                showCancelButton: true,
+            }).then((rs) => {
+                if (rs.isConfirmed) navigate(`/${path.LOGIN}`);
+            });
+            return;
+        }
+
+        // Nếu sản phẩm có nhiều màu, yêu cầu chọn màu
+        if ((colors?.length ?? 0) > 0 && !selectedColor) {
+            alert('Vui lòng chọn màu trước khi thêm vào giỏ hàng');
+            return;
+        }
+
+        const payload = { pid: product._id };
+        if (selectedColor) payload.color = selectedColor;
+        if (quantity && Number(quantity) > 0) payload.quantity = Number(quantity);
+
+        try {
+            setIsAdding(true);
+            const rs = await apiUpdateCart(payload);
+
+            if (!rs?.success) {
+                // Không popup/toast – chỉ log để dev kiểm tra
+                console.error(rs?.mes || 'Không thể thêm vào giỏ hàng');
+                return;
+            }
+
+            // Cập nhật lại user.current.cart và mở mini-cart
+            dispatch(getCurrent());
+            dispatch(showCart());
+            // Không hiển thị toast nào cả
+        } catch (e) {
+            console.error(e?.message || e);
+        } finally {
+            setIsAdding(false);
+        }
+    };
 
     return (
         <div>
@@ -198,7 +220,7 @@ ${currentImage === el ? 'border-red-500' : 'border-gray-300'}`}
                 {/* Right - Options + Price */}
                 <div className="flex-col justify-start items-center w-1/2 ml-8">
                     <div className='flex items-center mb-4 mx-2'>
-                        <h1 className="text-2xl font-bold text-gray-800 ">{displayTitle}</h1> {/* [SỬA] */}
+                        <h1 className="text-2xl font-bold text-gray-800 ">{displayTitle}</h1>
                     </div>
 
                     <div className='flex items-center mb-4 mx-2'>
@@ -253,7 +275,6 @@ ${selectedColor === color
 
                     {/* Promotions */}
                     <div className="mt-6 rounded-2xl border border-blue-300/70 bg-blue-50 p-5 shadow-sm">
-                        {/* ...giữ nguyên nội dung khuyến mãi... */}
                         <div className="flex items-center gap-2 mb-3">
                             <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-yellow-300 to-red-400 text-white shadow">
                                 🎁
@@ -283,14 +304,19 @@ ${selectedColor === color
                             handleQuantity={handleQuantity}
                             handleChangeQuantity={handleChangeQuantity}
                         />
-                        <Button fw>Thêm vào giỏ hàng</Button>
+                        <Button fw disabled={isAdding} handleOnClick={handleAddToCart}>
+                            {isAdding ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}
+                        </Button>
                     </div>
                 </div>
             </div>
+
             <div className='flex flex-col'>
-                <div className="flex  shadow-md rounded-3xl border-2 p-6 mb-6 mt-4">
+                <div className="flex shadow-md rounded-3xl border-2 p-6 mb-6 mt-4">
                     <div className='flex-4 flex-col flex items-center justify-center'>
-                        <span className='font-semibold text-5xl pb-2'>{`${product?.totalRatings}`}<span className="text-3xl text-gray-300">/5</span></span>
+                        <span className='font-semibold text-5xl pb-2'>
+                            {`${product?.totalRatings}`}<span className="text-3xl text-gray-300">/5</span>
+                        </span>
                         <span className='flex items-center gap-1'>
                             {renderStarFromNumber(product?.totalRatings, 24)?.map((el, index) => (
                                 <span key={index}>{el}</span>
@@ -315,6 +341,7 @@ ${selectedColor === color
                         ))}
                     </div>
                 </div>
+
                 <div className="flex flex-col gap-4">
                     {product?.ratings?.map(el => (
                         <Comment
@@ -326,7 +353,6 @@ ${selectedColor === color
                         />
                     ))}
                 </div>
-
             </div>
         </div>
     );

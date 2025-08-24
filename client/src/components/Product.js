@@ -3,26 +3,61 @@ import label from '../assets/label.png';
 import { SelectOption } from './'
 import icon from '../utils/icons'
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import path from '../utils/path'
+import withBaseComponent from '../hocs/withBaseComponent'
+import Swal from 'sweetalert2'
+import { apiUpdateCart } from '../apis';
+import { toast } from 'react-toastify'
+import { getCurrent } from '../store/user/asyncActions';
+import { useDispatch, useSelector } from 'react-redux';
+import { BsCartCheckFill, BsFillCartPlusFill } from "react-icons/bs";
 
-const { AiFillEye, AiOutlineMenu, BsFillSuitHeartFill } = icon
+const { BsFillSuitHeartFill } = icon
 
-const Product = ({ productData, isNew, hideLabel }) => {
+const Product = ({ productData, isNew, hideLabel, navigate }) => {
     const [isShowOption, setIsShowOption] = useState(false)
+    const { current } = useSelector(state => state.user)
+    const dispatch = useDispatch()
+    const handleClickOptions = async (e, flag) => {
+        e.stopPropagation()
+        if (flag === 'CART') {
+            if (!current) return Swal.fire({
+                title: 'Rất tiếc!',
+                text: 'Vui lòng đăng nhập',
+                icon: 'info',
+                cancelButtonText: 'Quay lại',
+                showCancelButton: true,
+                confirmButtonText: 'Đăng nhập'
+            }).then((rs) => {
+                if (rs.isConfirmed) navigate(`/${path.LOGIN}`)
+            })
+            const response = await apiUpdateCart({ pid: productData._id, color: productData.color })
+            if (response.success) {
+                toast.success(response.mes)
+                dispatch(getCurrent())
+            }
+            else toast.error(response.mes)
+        }
+        if (flag === 'WISHLIST') console.log('WISHLIST')
+    }
+
     return (
         <div className='w-full text-base px-2 py-2 '>
-            <Link
+            <div
                 className='w-full border p-[15px] flex flex-col items-center rounded-3xl shadow-lg bg-white py-6'
-                to={`/${productData?.category}/${productData?._id}/${productData?.title}`}
+                onClick={e => navigate(`/${productData?.category?.toLowerCase()}/${productData?._id}/${productData?.title}`)}
                 onMouseEnter={e => setIsShowOption(true)}
                 onMouseLeave={e => setIsShowOption(false)}
             >
                 <div className='w-full relative'>
                     {isShowOption && <div className='absolute bottom-[-10px] left-0 right-0 flex justify-center gap-2 animate-slide-top'>
-                        <SelectOption icon={<AiFillEye />} />
-                        <SelectOption icon={<AiOutlineMenu />} />
-                        <SelectOption icon={<BsFillSuitHeartFill />} />
+                        {current?.cart?.some(el => el.product === productData._id.toString())
+                            ? <span title='Thêm vào giỏ hàng' ><SelectOption icon={<BsCartCheckFill color='green' />} /></span>
+                            : <span title='Thêm vào giỏ hàng' onClick={(e) => handleClickOptions(e, 'CART')}><SelectOption icon={<BsFillCartPlusFill color='black' />} /></span>
+                        }
+
+                        <span title='Thêm vào yêu thích' onClick={(e) => handleClickOptions(e, 'WISHLIST')}><SelectOption icon={<BsFillSuitHeartFill />} /></span>
+
                     </div>}
 
                     <img
@@ -53,9 +88,9 @@ const Product = ({ productData, isNew, hideLabel }) => {
                     </span>
 
                 </div>
-            </Link>
+            </div>
         </div>
     );
 };
 
-export default Product;
+export default withBaseComponent(Product)
