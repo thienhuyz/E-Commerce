@@ -21,7 +21,7 @@ const InputField = ({ value, setValue, label, nameKey, type, invalidFields, setI
             <input
                 autoComplete="off"
                 type={actualType}
-                className={`px-4 py-4 rounded-sm border w-full mb-8 placeholder:text-base placeholder:italic outline-none ${isPassword ? 'pr-12' : ''}`}
+                className={`px-6 py-4 rounded-xl border w-full mb-8 placeholder:text-base placeholder:italic outline-none ${isPassword ? 'pr-12' : ''}`}
                 placeholder={label}
                 value={value}
                 onChange={e => setValue(prev => ({ ...prev, [nameKey]: e.target.value }))}

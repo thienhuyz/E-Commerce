@@ -11,7 +11,7 @@ const path = {
     FINAL_REGISTER: 'finalregister/:status',
     RESET_PASSWORD: 'reset-password/:token',
     DETAIL_CART: 'my-cart',
-
+    SEARCH: 'search',
     // Admin
     ADMIN: 'admin',
     DASHBOARD: 'dashboard',
@@ -26,6 +26,7 @@ const path = {
     MY_CART: 'my-cart',
     HISTORY: 'buy-history',
     WISHLIST: 'wishlist',
+    CHECKOUT: 'checkout'
 
 
 };

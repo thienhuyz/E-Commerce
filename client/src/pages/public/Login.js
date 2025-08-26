@@ -94,129 +94,220 @@ const Login = () => {
 
 
     return (
-        <div className='w-screen h-screen relative bg-main'>
-            {isVerifiedEmail && (
-                <div className='w-screen h-screen relative'>
-                    <div className='absolute top-0 left-0 right-0 bottom-0 bg-overlay z-50 flex flex-col justify-center items-center'>
-                        <div className='bg-white w-[500px] rounded-md p-8'>
-                            <h4 className=''>Chúng tôi đã gửi code đến email của bạn. Vui lòng kiểm tra email và nhập code:</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 w-full h-screen">
+            {/* LEFT: Perks */}
+            <div className="p-12 flex flex-col justify-center bg-gradient-to-br from-red-50 to-white">
+                <div className="flex items-center gap-4 mb-6">
+                    <span className="px-4 py-1 rounded-md bg-red-600 text-white font-bold uppercase tracking-wide">
+                        TechnoStore
+                    </span>
+                    <span className="px-4 py-1 rounded-md bg-red-600 text-white font-bold uppercase tracking-wide">
+                        Trung Tâm Bảo Hành
+                    </span>
+                </div>
+
+                <h2 className="text-4xl font-extrabold leading-snug text-gray-800">
+                    Nhập hội khách hàng thành viên{" "}
+                    <span className="text-red-600">TMEMBER</span>
+                </h2>
+                <p className="mt-2 text-gray-600">
+                    Để không bỏ lỡ các ưu đãi hấp dẫn từ{" "}
+                    <span className="font-semibold">TechnoStore</span>
+                </p>
+
+                <ul className="mt-8 space-y-4 text-gray-800">
+                    <li className="flex gap-3">
+                        <span className="text-yellow-500 text-xl">🎁</span>
+                        <span>Chiết khấu đến 5% khi mua các sản phẩm tại TechnoStore</span>
+                    </li>
+                    <li className="flex gap-3">
+                        <span className="text-yellow-500 text-xl">🎁</span>
+                        <span>Miễn phí giao hàng cho thành viên TMEMBER, TVIP và đơn từ 300.000đ</span>
+                    </li>
+                    <li className="flex gap-3">
+                        <span className="text-yellow-500 text-xl">🎁</span>
+                        <span>Tặng voucher sinh nhật đến 500.000đ cho khách hàng thành viên</span>
+                    </li>
+                    <li className="flex gap-3">
+                        <span className="text-yellow-500 text-xl">🎁</span>
+                        <span>Trợ giá thu cũ lên đời đến 1 triệu</span>
+                    </li>
+                    <li className="flex gap-3">
+                        <span className="text-yellow-500 text-xl">🎁</span>
+                        <span>Thăng hạng nhận voucher đến 300.000đ</span>
+                    </li>
+                    <li className="flex gap-3">
+                        <span className="text-yellow-500 text-xl">🎁</span>
+                        <span>Đặc quyền T-Student/T-Teacher ưu đãi thêm đến 10%</span>
+                    </li>
+                </ul>
+
+                <a href="#" className="mt-6 inline-block text-red-600 font-semibold hover:underline">
+                    Xem chi tiết chính sách ưu đãi TMEMBER →
+                </a>
+            </div>
+
+            {/* RIGHT: Login/Register form */}
+            <div className="p-12 flex flex-col justify-center bg-white relative">
+                {/* overlay verify email */}
+                {isVerifiedEmail && (
+                    <div className="absolute inset-0 bg-overlay z-50 flex items-center justify-center">
+                        <div className="bg-white w-[500px] rounded-md p-8 shadow-lg">
+                            <h4>Chúng tôi đã gửi code đến email của bạn. Vui lòng nhập code:</h4>
                             <input
                                 type="text"
                                 value={token}
-                                onChange={e => setToken(e.target.value)}
-                                className='p-2 border rounded-md outline-none'
+                                onChange={(e) => setToken(e.target.value)}
+                                className="p-2 border rounded-md outline-none mt-3"
                             />
                             <button
-                                type='button'
-                                className='px-4 py-2 bg-blue-500 font-semibold text-white rounded-md ml-4'
+                                type="button"
+                                className="px-4 py-2 bg-blue-500 font-semibold text-white rounded-md ml-4"
                                 onClick={finalRegister}
                             >
                                 Xác nhận
                             </button>
                         </div>
                     </div>
-                </div>
+                )}
 
-            )}
+                {isForgotPassword && (
 
-            {isForgotPassword && <div className='absolute top-0 left-0 bottom-0 right-0 bg-white flex flex-col items-center py-8 z-50'>
-                <div className='flex flex-col gap-4'>
-                    <label htmlFor="email">Nhập email của bạn:</label>
-                    <input
-                        type="text"
-                        id="email"
-                        className='w-[800px] pb-2 border-b outline-none placeholder:text-sm'
-                        placeholder='Exp: email@gmail.com'
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
+                    <div div className="absolute inset-0 z-50 flex items-center justify-center">
+
+                        <div className="absolute inset-0 bg-black/40"></div>
 
 
-                    />
-                    <div className='flex items-center justify-between w-full'>
-                        <Button handleOnClick={() => setIsForgotPassword(false)}> Quay lại</Button>
-                        <Button
-                            handleOnClick={handleForgotPassword}
-                            style='px-4 py-2 rounded-md text-white bg-blue-500 text-semibold my-2'>
-                            Xác nhận
-                        </Button>
+                        <div className="relative bg-white w-full max-w-md mx-4 rounded-2xl shadow-xl p-6">
+                            <h2 className="text-xl font-bold text-center text-red-600">Quên mật khẩu</h2>
+                            <p className="mt-2 text-sm text-center text-gray-600">
+                                Nhập email để nhận liên kết đặt lại mật khẩu
+                            </p>
+
+                            <label htmlFor="email" className="mt-5 block text-sm font-medium text-gray-700">
+                                Email
+                            </label>
+                            <input
+                                type="email"
+                                id="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="exp: email@gmail.com"
+                                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 transition"
+                            />
+
+                            <div className="mt-6 flex gap-3">
+                                <Button
+                                    handleOnClick={() => setIsForgotPassword(false)}
+                                    style="flex-1 h-10 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+                                >
+                                    Quay lại
+                                </Button>
+                                <Button
+                                    handleOnClick={handleForgotPassword}
+                                    style="flex-1 h-10 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition"
+                                >
+                                    Xác nhận
+                                </Button>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-            </div>}
+                )}
 
+                <h1 className="text-3xl font-bold text-red-600 mb-6 text-center">
+                    {isRegister ? "Đăng ký TMEMBER" : "Đăng nhập TMEMBER"}
+                </h1>
 
-            <div className='absolute top-0 bottom-0 left-0 right-1/2 items-center justify-center flex'>
-                <div className='p-8 bg-white flex flex-col items-center rounded-md min-w-[500px]'>
-                    <h1 className='text-[28px] font-semibold text-main mb-8'>{isRegister ? 'Đăng ký' : 'Đăng nhập'}</h1>
-                    {isRegister && <div className='flex items-center gap-2'>
+                {isRegister && (
+                    <div className="flex gap-2">
                         <InputField
                             value={payload.firstname}
                             setValue={setPayload}
-                            nameKey='firstname'
-                            label='Họ'
+                            nameKey="firstname"
+                            label="Họ"
                             invalidFields={invalidFields}
                             setInvalidFields={setInvalidFields}
                         />
                         <InputField
                             value={payload.lastname}
                             setValue={setPayload}
-                            nameKey='lastname'
-                            label='Tên'
+                            nameKey="lastname"
+                            label="Tên"
                             invalidFields={invalidFields}
                             setInvalidFields={setInvalidFields}
                         />
-                    </div>}
+                    </div>
+                )}
 
+                <InputField
+                    value={payload.email}
+                    setValue={setPayload}
+                    nameKey="email"
+                    label="Email"
+                    invalidFields={invalidFields}
+                    setInvalidFields={setInvalidFields}
+                />
+
+                {isRegister && (
                     <InputField
-                        value={payload.email}
-                        setValue={setPayload}
-                        nameKey='email'
-                        label='Email'
-                        invalidFields={invalidFields}
-                        setInvalidFields={setInvalidFields}
-                    />
-                    {isRegister && <InputField
                         value={payload.mobile}
                         setValue={setPayload}
-                        nameKey='mobile'
-                        label='Số điện thoại'
-                        invalidFields={invalidFields}
-                        setInvalidFields={setInvalidFields}
-                    />}
-                    <InputField
-                        value={payload.password}
-                        setValue={setPayload}
-                        nameKey='password'
-                        type='password'
-                        label='Mật khẩu'
+                        nameKey="mobile"
+                        label="Số điện thoại"
                         invalidFields={invalidFields}
                         setInvalidFields={setInvalidFields}
                     />
-                    <Button
-                        handleOnClick={handleSubmit}
-                        fw>
-                        {isRegister ? 'Đăng ký' : 'Đăng nhập'}
-                    </Button>
-                    <div className='flex items-center justify-between my-2 w-full text-sm'>
-                        {!isRegister && <span onClick={() => setIsForgotPassword(true)} className='text-blue-500 hover:underline cursor-pointer'>
-                            Quên mật khẩu?
-                        </span>}
-                        {!isRegister && <span
-                            className='text-blue-500 hover:underline cursor-pointer'
-                            onClick={() => setIsRegister(true)}>
-                            Tạo tài khoản mới
-                        </span>}
-                        {isRegister && <span
-                            className='text-blue-500 hover:underline cursor-pointer w-full text-center'
-                            onClick={() => setIsRegister(false)}>
-                            Quay lại đăng nhập
-                        </span>}
-                    </div>
+                )}
 
+                <InputField
+                    value={payload.password}
+                    setValue={setPayload}
+                    nameKey="password"
+                    type="password"
+                    label="Mật khẩu"
+                    invalidFields={invalidFields}
+                    setInvalidFields={setInvalidFields}
+                />
+
+                <div className="text-xs bg-blue-50 border border-blue-200 rounded-md p-3 text-gray-600 my-4">
+                    Trải nghiệm đăng nhập liền mạch giữa <b>TechnoStore</b> và Trung Tâm Bảo Hành,
+                    ưu tiên dùng tài khoản <b>TechnoStore</b> (nếu có).
+                </div>
+
+                <Button handleOnClick={handleSubmit} fw>
+                    {isRegister ? "Đăng ký" : "Đăng nhập"}
+                </Button>
+
+                <div className="flex justify-between text-sm mt-3">
+                    {!isRegister && (
+                        <button
+                            onClick={() => setIsForgotPassword(true)}
+                            className="text-blue-600 hover:underline"
+                        >
+                            Quên mật khẩu?
+                        </button>
+                    )}
+                    {!isRegister ? (
+                        <button
+                            onClick={() => setIsRegister(true)}
+                            className="text-blue-600 hover:underline"
+                        >
+                            Tạo tài khoản mới
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => setIsRegister(false)}
+                            className="text-blue-600 hover:underline"
+                        >
+                            Quay lại đăng nhập
+                        </button>
+                    )}
                 </div>
             </div>
-        </div>
+        </div >
     )
+
 }
 
 export default Login

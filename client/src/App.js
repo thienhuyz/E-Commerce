@@ -22,8 +22,11 @@ import {
   Personal,
   MyCart,
   Wishlist,
-  History
+  History,
+  Checkout
 } from './pages/member'
+
+import SearchByName from "./components/SearchByName";
 
 function App() {
   const { isShowModal, modalChildren, isShowCart } = useSelector(state => state.app)
@@ -47,9 +50,10 @@ function App() {
           <Route path={path.FAQ} element={<FAQ />} />
           <Route path={path.OUR_SERVICES} element={<Services />} />
           <Route path={path.PRODUCTS} element={<Products />} />
-          <Route path={path.RESET_PASSWORD} element={<ResetPassword />} />
+
           <Route path={path.DETAIL_CART} element={<DetailCart />} />
           <Route path={path.ALL} element={<Home />} />
+          <Route path={path.SEARCH} element={<SearchByName />} />
         </Route>
         <Route path={path.ADMIN} element={<AdminLayout />}>
           <Route path={path.DASHBOARD} element={<Dashboard />} />
@@ -68,6 +72,8 @@ function App() {
 
         <Route path={path.FINAL_REGISTER} element={<FinalRegister />} />
         <Route path={path.LOGIN} element={<Login />} />
+        <Route path={path.CHECKOUT} element={<Checkout />} />
+        <Route path={path.RESET_PASSWORD} element={<ResetPassword />} />
       </Routes>
       <ToastContainer
         position="top-right"

@@ -3,7 +3,7 @@ import withBaseComponent from '../../hocs/withBaseComponent'
 import { useSelector } from 'react-redux'
 import { formatMoney } from '../../utils/helper'
 import { useEffect, useMemo, useState } from 'react'
-
+import { Link } from 'react-router-dom'
 const DetailCart = ({ location }) => {
     const { current } = useSelector(state => state.user)
 
@@ -118,7 +118,10 @@ const DetailCart = ({ location }) => {
                     <span>Tổng tiền:</span>
                     <span className='text-main font-bold'>{formatMoney(subtotal)} VND</span>
                 </span>
-                <Button>Thanh toán</Button>
+                <Button handleOnClick={() => alert("Thanh toán thành công!")}>
+                    Thanh toán
+                </Button>
+
             </div>
         </div>
     )
