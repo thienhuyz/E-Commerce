@@ -4,11 +4,30 @@ import { useSelector } from 'react-redux'
 import { formatMoney } from '../../utils/helper'
 import OrderItem from '../../components/OrderItem'
 import path from '../../utils/path'
-import { Link } from 'react-router-dom'
+import Swal from 'sweetalert2'
+import { createSearchParams } from 'react-router-dom'
 
-const DetailCart = () => {
-    const { currentCart } = useSelector(state => state.user)
-    console.log(currentCart)
+const DetailCart = ({ navigate, location }) => {
+    const { currentCart, current } = useSelector(state => state.user)
+    const handleSubmit = () => {
+        if (!current?.address) return Swal.fire({
+            icon: 'info',
+            title: 'Rất tiếc!',
+            text: 'Cập nhật địa chỉ trước khi thanh toán',
+            showCancelButton: true,
+            showConfirmButton: true,
+            confirmButtonText: 'Cập nhật',
+            cancelButtonText: 'Quay lại',
+        }).then((result) => {
+            if (result.isConfirmed) navigate({
+                pathname: `/${path.MEMBER}/${path.PERSONAL}`,
+                search: createSearchParams({ redirect: location.pathname }).toString()
+            })
+        })
+        else window.open(`/${path.CHECKOUT}`, '_blank')
+    }
+
+
 
     return (
         <div className='w-full'>
@@ -37,7 +56,7 @@ const DetailCart = () => {
                         <span>Tổng tiền:</span>
                         <span className='text-main font-bold'>{`${formatMoney(currentCart?.reduce((sum, el) => +el?.price * el?.quantity + sum, 0))} VND`}</span>
                     </span>
-                    <Link target='_blank' className='bg-main text-white px-4 py-2 rounded-md' to={`/${path.CHECKOUT}`}>Thanh toán</Link>
+                    <Button handleOnClick={handleSubmit}>Thanh toán</Button>
 
                 </div>
             </div>

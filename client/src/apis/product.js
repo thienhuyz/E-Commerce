@@ -46,3 +46,10 @@ export const apiUploadProductImages = (pid, data) =>
         data, // formData chứa images[]
         headers: { "Content-Type": "multipart/form-data" },
     });
+
+export const apiCreateOrder = (data) =>
+    axios({
+        url: '/order',
+        method: 'post',
+        data
+    })
