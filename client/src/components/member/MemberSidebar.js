@@ -5,6 +5,7 @@ import { NavLink } from 'react-router-dom'
 import clsx from 'clsx'
 import { AiOutlineCaretDown } from 'react-icons/ai'
 import { useSelector } from 'react-redux'
+import { IoHome } from "react-icons/io5";
 
 /** Style chung */
 const baseItem =
@@ -115,6 +116,12 @@ const MemberSidebar = () => {
                         )}
                     </Fragment>
                 ))}
+                <div className="mt-8 flex justify-center">
+                    <NavLink to="/" className="text-main flex items-center gap-1">
+                        <IoHome />
+                        <span>Quay về trang chủ</span>
+                    </NavLink>
+                </div>
             </nav>
         </aside>
     )

@@ -11,32 +11,50 @@ import { toast } from 'react-toastify'
 import { getCurrent } from '../store/user/asyncActions';
 import { useDispatch, useSelector } from 'react-redux';
 import { BsCartCheckFill, BsFillCartPlusFill } from "react-icons/bs";
+import { createSearchParams } from 'react-router-dom';
 
 const { BsFillSuitHeartFill } = icon
 
-const Product = ({ productData, isNew, hideLabel, navigate }) => {
+const Product = ({ productData, isNew, hideLabel, navigate, location }) => {
     const [isShowOption, setIsShowOption] = useState(false)
     const { current } = useSelector(state => state.user)
     const dispatch = useDispatch()
     const handleClickOptions = async (e, flag) => {
         e.stopPropagation()
         if (flag === 'CART') {
-            if (!current) return Swal.fire({
-                title: 'Rất tiếc!',
-                text: 'Vui lòng đăng nhập',
-                icon: 'info',
-                cancelButtonText: 'Quay lại',
-                showCancelButton: true,
-                confirmButtonText: 'Đăng nhập'
-            }).then((rs) => {
-                if (rs.isConfirmed) navigate(`/${path.LOGIN}`)
-            })
-            const response = await apiUpdateCart({ pid: productData._id, color: productData.color })
-            if (response.success) {
-                toast.success(response.mes)
-                dispatch(getCurrent())
+            if (!current) {
+                return Swal.fire({
+                    title: "Rất tiếc!",
+                    text: "Vui lòng đăng nhập",
+                    icon: "info",
+                    cancelButtonText: "Quay lại",
+                    showCancelButton: true,
+                    confirmButtonText: "Đăng nhập",
+                }).then(async (rs) => {
+                    if (rs.isConfirmed)
+                        navigate({
+                            pathname: `/${path.LOGIN}`,
+                            search: createSearchParams({ redirect: location.pathname }).toString(),
+                        });
+                });
             }
-            else toast.error(response.mes)
+
+            const response = await apiUpdateCart({
+                pid: productData?._id,
+                color: productData?.color,
+                quantity: 1,
+                price: productData?.price,
+                thumbnail: productData?.thumb, // ảnh theo màu đang chọn
+                title: productData?.title,
+            });
+
+            if (response.success) {
+                toast.success(response.mes);
+                dispatch(getCurrent());
+            } else {
+                toast.error(response.mes);
+            }
+
         }
         if (flag === 'WISHLIST') console.log('WISHLIST')
     }

@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, current } from "@reduxjs/toolkit";
 import { getNewProducts } from './asynsActions';
 
 export const productSlice = createSlice({

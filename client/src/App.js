@@ -1,5 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
-import { Login, Home, Public, Products, FAQ, Services, DetailProduct, Blogs, FinalRegister, ResetPassword, DetailCart } from './pages/public'
+import { Login, Home, Public, Products, FAQ, Services, DetailProduct, Blogs, FinalRegister, ResetPassword } from './pages/public'
 import path from './utils/path'
 import { getCategories } from './store/app/asyncActions';
 import { useEffect } from 'react';
@@ -13,7 +13,6 @@ import {
   ManageOrder,
   ManageProducts,
   ManageUser,
-  CreateProducts,
   Dashboard
 } from './pages/admin'
 
@@ -23,7 +22,8 @@ import {
   MyCart,
   Wishlist,
   History,
-  Checkout
+  Checkout,
+  DetailCart
 } from './pages/member'
 
 import SearchByName from "./components/SearchByName";
@@ -43,6 +43,7 @@ function App() {
 
       {isShowModal && <Modal>{modalChildren}</Modal>}
       <Routes>
+        <Route path={path.CHECKOUT} element={<Checkout />} />
         <Route path={path.PUBLIC} element={<Public />}>
           <Route path={path.HOME} element={<Home />} />
           <Route path={path.BLOGS} element={<Blogs />} />
@@ -51,7 +52,6 @@ function App() {
           <Route path={path.OUR_SERVICES} element={<Services />} />
           <Route path={path.PRODUCTS} element={<Products />} />
 
-          <Route path={path.DETAIL_CART} element={<DetailCart />} />
           <Route path={path.ALL} element={<Home />} />
           <Route path={path.SEARCH} element={<SearchByName />} />
         </Route>
@@ -60,12 +60,11 @@ function App() {
           <Route path={path.MANAGE_ORDER} element={<ManageOrder />} />
           <Route path={path.MANAGE_PRODUCTS} element={<ManageProducts />} />
           <Route path={path.MANAGE_USER} element={<ManageUser />} />
-          <Route path={path.CREATE_PRODUCTS} element={<CreateProducts />} />
         </Route>
 
         <Route path={path.MEMBER} element={<MemberLayout />}>
           <Route path={path.PERSONAL} element={<Personal />} />
-          <Route path={path.MY_CART} element={<MyCart id='cart' />} />
+          <Route path={path.MY_CART} element={<DetailCart />} />
           <Route path={path.WISHLIST} element={<Wishlist />} />
           <Route path={path.HISTORY} element={<History />} />
         </Route>

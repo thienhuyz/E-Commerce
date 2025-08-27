@@ -1,14 +1,17 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useParams, useNavigate } from 'react-router-dom';
-import { apiGetProduct, apiRatings, apiUpdateCart } from '../../apis';
-import { Breadcrumb, SelectQuantity, Button, Votebar, VoteOption, Comment } from '../../components';
+import { useParams, useNavigate } from "react-router-dom";
+import { apiGetProduct, apiRatings, apiUpdateCart } from "../../apis";
+import { Breadcrumb, SelectQuantity, Button, Votebar, VoteOption, Comment } from "../../components";
 import Slider from "react-slick";
-import { formatMoney, renderStarFromNumber, createslug } from '../../utils/helper';
+import { formatMoney, renderStarFromNumber, createslug } from "../../utils/helper";
 import { useDispatch, useSelector } from "react-redux";
-import { showModal, showCart } from '../../store/app/appSlice';
-import { getCurrent } from '../../store/user/asyncActions';
-import Swal from 'sweetalert2';
+import { showModal } from "../../store/app/appSlice";
+import { getCurrent } from "../../store/user/asyncActions";
+import Swal from "sweetalert2";
 import path from "../../utils/path";
+import { toast } from "react-toastify";
+import { createSearchParams } from "react-router-dom";
+import withBaseComponent from "../../hocs/withBaseComponent";
 
 const settings = {
     dots: false,
@@ -18,7 +21,7 @@ const settings = {
     slidesToScroll: 1,
 };
 
-const DetailProduct = () => {
+const DetailProduct = ({ location }) => {
     const navigate = useNavigate();
     const { pid, title, category } = useParams();
     const [product, setProduct] = useState(null);
@@ -27,12 +30,14 @@ const DetailProduct = () => {
     const [quantity, setQuantity] = useState(1);
     const [isAdding, setIsAdding] = useState(false);
     const dispatch = useDispatch();
-    const { isLoggedIn } = useSelector(state => state.user);
+    const { isLoggedIn, current } = useSelector((state) => state.user);
     const [update, setUpdate] = useState(false);
+
+    const rerender = useCallback(() => setUpdate((u) => !u), []);
 
     const handleSubmitVoteOption = async ({ comment, score }) => {
         if (!comment || !score) {
-            alert('Vui lòng nhận xét sản phẩm');
+            alert("Vui lòng nhận xét sản phẩm");
             return;
         }
         await apiRatings({ star: score, comment, pid, updatedAt: Date.now() });
@@ -41,7 +46,7 @@ const DetailProduct = () => {
     };
 
     const slugToTitle = useCallback(
-        (s) => s?.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
+        (s) => s?.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
         []
     );
 
@@ -49,14 +54,30 @@ const DetailProduct = () => {
         () => product?.title || slugToTitle(title),
         [product, title, slugToTitle]
     );
+
     const displayCategory = useMemo(
         () => product?.category || (category ? slugToTitle(category) : "Sản phẩm"),
         [product, category, slugToTitle]
     );
 
     const colors = useMemo(() => {
-        return product?.color ? product.color.split(",").map(c => c.trim()) : [];
+        return product?.color ? product.color.split(",").map((c) => c.trim()) : [];
     }, [product]);
+
+    const selectedColorIndex = useMemo(
+        () => colors.indexOf(selectedColor),
+        [colors, selectedColor]
+    );
+
+    const colorThumbnail = useMemo(() => {
+        if (!product) return "";
+        return (
+            product.images?.[selectedColorIndex] ||
+            product.thumb ||
+            product.images?.[0] ||
+            ""
+        );
+    }, [product, selectedColorIndex]);
 
     const fetchProductData = useCallback(async () => {
         if (!pid) return;
@@ -67,30 +88,42 @@ const DetailProduct = () => {
 
             const firstImage = p?.thumb || p?.images?.[0] || "";
             setCurrentImage(firstImage);
-            const firstColor = p?.color ? p.color.split(",").map(c => c.trim())[0] : "";
+            const firstColor = p?.color ? p.color.split(",").map((c) => c.trim())[0] : "";
             setSelectedColor(firstColor || "");
 
             const canonical = `/${createslug(p.category)}/${pid}/${createslug(p.title)}`;
-            const current = `/${category}/${pid}/${title}`;
-            if (category && title && canonical !== current) {
+            const currentPath = `/${category}/${pid}/${title}`;
+            if (category && title && canonical !== currentPath) {
                 navigate(canonical, { replace: true });
             }
         }
     }, [pid, category, title, navigate]);
 
-    useEffect(() => { fetchProductData(); }, [fetchProductData]);
-    useEffect(() => { if (pid) fetchProductData(); }, [update, pid, fetchProductData]);
-    const rerender = useCallback(() => setUpdate(u => !u), []);
+    useEffect(() => {
+        fetchProductData();
+    }, [fetchProductData]);
+
+    useEffect(() => {
+        if (pid) fetchProductData();
+    }, [update, pid, fetchProductData]);
+
+    // Đồng bộ ảnh lớn theo màu đang chọn
+    useEffect(() => {
+        if (!product) return;
+        const img = product.images?.[selectedColorIndex];
+        if (img) setCurrentImage(img);
+    }, [product, selectedColorIndex]);
 
     const handleQuantity = useCallback((number) => {
         const n = Number(number);
         if (!Number.isFinite(n) || n < 1) return;
         setQuantity(n);
     }, []);
+
     const handleChangeQuantity = useCallback((flag) => {
-        setQuantity(prev => {
-            if (flag === 'minus') return prev > 1 ? prev - 1 : 1;
-            if (flag === 'plus') return prev + 1;
+        setQuantity((prev) => {
+            if (flag === "minus") return prev > 1 ? prev - 1 : 1;
+            if (flag === "plus") return prev + 1;
             return prev;
         });
     }, []);
@@ -98,69 +131,63 @@ const DetailProduct = () => {
     const handleVoteNow = () => {
         if (!isLoggedIn) {
             Swal.fire({
-                text: 'Vui lòng đăng nhập trước khi đánh giá',
-                cancelButtonText: 'Quay lại',
-                confirmButtonText: 'Đăng nhập',
-                title: 'Rất tiếc!',
+                text: "Vui lòng đăng nhập trước khi đánh giá",
+                cancelButtonText: "Quay lại",
+                confirmButtonText: "Đăng nhập",
+                title: "Rất tiếc!",
                 showCancelButton: true,
             }).then((rs) => {
                 if (rs.isConfirmed) navigate(`/${path.LOGIN}`);
             });
         } else {
-            dispatch(showModal({
-                isShowModal: true, modalChildren: <VoteOption
-                    nameProduct={product?.title}
-                    handleSubmitVoteOption={handleSubmitVoteOption}
-                />
-            }));
+            dispatch(
+                showModal({
+                    isShowModal: true,
+                    modalChildren: (
+                        <VoteOption
+                            nameProduct={product?.title}
+                            handleSubmitVoteOption={handleSubmitVoteOption}
+                        />
+                    ),
+                })
+            );
         }
     };
 
-    // Thêm vào giỏ hàng - không dùng toast
     const handleAddToCart = async () => {
-        if (!product?._id) return;
-
-        if (!isLoggedIn) {
-            Swal.fire({
-                text: 'Bạn cần đăng nhập để thêm vào giỏ hàng',
-                cancelButtonText: 'Quay lại',
-                confirmButtonText: 'Đăng nhập',
-                title: 'Thông báo',
+        if (!current) {
+            return Swal.fire({
+                title: "Rất tiếc!",
+                text: "Vui lòng đăng nhập",
+                icon: "info",
+                cancelButtonText: "Quay lại",
                 showCancelButton: true,
-            }).then((rs) => {
-                if (rs.isConfirmed) navigate(`/${path.LOGIN}`);
+                confirmButtonText: "Đăng nhập",
+            }).then(async (rs) => {
+                if (rs.isConfirmed)
+                    navigate({
+                        pathname: `/${path.LOGIN}`,
+                        search: createSearchParams({ redirect: location.pathname }).toString(),
+                    });
             });
-            return;
         }
 
-        // Nếu sản phẩm có nhiều màu, yêu cầu chọn màu
-        if ((colors?.length ?? 0) > 0 && !selectedColor) {
-            alert('Vui lòng chọn màu trước khi thêm vào giỏ hàng');
-            return;
-        }
+        setIsAdding(true);
+        const response = await apiUpdateCart({
+            pid,
+            color: selectedColor,
+            quantity,
+            price: product.price,
+            thumbnail: colorThumbnail, // ảnh theo màu đang chọn
+            title: product.title,
+        });
+        setIsAdding(false);
 
-        const payload = { pid: product._id };
-        if (selectedColor) payload.color = selectedColor;
-        if (quantity && Number(quantity) > 0) payload.quantity = Number(quantity);
-
-        try {
-            setIsAdding(true);
-            const rs = await apiUpdateCart(payload);
-
-            if (!rs?.success) {
-                // Không popup/toast – chỉ log để dev kiểm tra
-                console.error(rs?.mes || 'Không thể thêm vào giỏ hàng');
-                return;
-            }
-
-            // Cập nhật lại user.current.cart và mở mini-cart
+        if (response.success) {
+            toast.success(response.mes);
             dispatch(getCurrent());
-            dispatch(showCart());
-            // Không hiển thị toast nào cả
-        } catch (e) {
-            console.error(e?.message || e);
-        } finally {
-            setIsAdding(false);
+        } else {
+            toast.error(response.mes);
         }
     };
 
@@ -173,7 +200,10 @@ const DetailProduct = () => {
                 <div className="flex flex-col gap-4 w-1/2 mr-12 rounded-xl">
                     <div className="border w-full justify-items-center rounded-xl shadow-lg">
                         <img
-                            src={currentImage || 'https://apollobattery.com.au/wp-content/uploads/2022/08/default-product-image.png'}
+                            src={
+                                currentImage ||
+                                "https://apollobattery.com.au/wp-content/uploads/2022/08/default-product-image.png"
+                            }
                             alt={displayTitle}
                             className="h-[324px] object-cover"
                         />
@@ -189,7 +219,7 @@ const DetailProduct = () => {
                                         alt="sub-product"
                                         onClick={() => setCurrentImage(el)}
                                         className={`h-[82px] object-cover rounded-xl border shadow-lg cursor-pointer 
-${currentImage === el ? 'border-red-500' : 'border-gray-300'}`}
+${currentImage === el ? "border-red-500" : "border-gray-300"}`}
                                     />
                                 </div>
                             ))}
@@ -219,11 +249,11 @@ ${currentImage === el ? 'border-red-500' : 'border-gray-300'}`}
 
                 {/* Right - Options + Price */}
                 <div className="flex-col justify-start items-center w-1/2 ml-8">
-                    <div className='flex items-center mb-4 mx-2'>
+                    <div className="flex items-center mb-4 mx-2">
                         <h1 className="text-2xl font-bold text-gray-800 ">{displayTitle}</h1>
                     </div>
 
-                    <div className='flex items-center mb-4 mx-2'>
+                    <div className="flex items-center mb-4 mx-2">
                         {renderStarFromNumber(product?.totalRatings, 24)?.map((el, index) => (
                             <span key={index}>{el}</span>
                         ))}
@@ -245,10 +275,7 @@ ${currentImage === el ? 'border-red-500' : 'border-gray-300'}`}
                             {colors.map((color, i) => (
                                 <button
                                     key={i}
-                                    onClick={() => {
-                                        setSelectedColor(color);
-                                        if (product?.images?.[i]) setCurrentImage(product.images[i]);
-                                    }}
+                                    onClick={() => setSelectedColor(color)}
                                     className={`relative flex items-center gap-2 p-3 border rounded-md text-sm
 ${selectedColor === color
                                             ? "border-red-500 text-red-600 font-semibold"
@@ -283,67 +310,83 @@ ${selectedColor === color
                         </div>
                         <ul className="space-y-3 text-[15px] text-gray-700">
                             <li className="flex gap-3">
-                                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold flex-shrink-0 mt-0.5">1</span>
-                                <span>Trả góp 0% lãi suất, tối đa 12 tháng, trả trước từ 10% qua CTTC hoặc 0đ qua thẻ tín dụng <a className="text-blue-600 hover:underline ml-1">Xem chi tiết</a></span>
+                                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold flex-shrink-0 mt-0.5">
+                                    1
+                                </span>
+                                <span>
+                                    Trả góp 0% lãi suất, tối đa 12 tháng, trả trước từ 10% qua CTTC hoặc 0đ qua thẻ tín dụng{" "}
+                                    <a className="text-blue-600 hover:underline ml-1">Xem chi tiết</a>
+                                </span>
                             </li>
                             <li className="flex gap-3">
-                                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold flex-shrink-0 mt-0.5">2</span>
-                                <span>Tặng combo 3 voucher tổng trị giá đến 2 triệu mua các sản phẩm tivi, gia dụng, đồng hồ trẻ em <a className="text-blue-600 hover:underline ml-1">Xem chi tiết</a></span>
+                                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold flex-shrink-0 mt-0.5">
+                                    2
+                                </span>
+                                <span>
+                                    Tặng combo 3 voucher tổng trị giá đến 2 triệu mua các sản phẩm tivi, gia dụng, đồng hồ trẻ em{" "}
+                                    <a className="text-blue-600 hover:underline ml-1">Xem chi tiết</a>
+                                </span>
                             </li>
                             <li className="flex gap-3">
-                                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold flex-shrink-0 mt-0.5">3</span>
-                                <span>Tặng Sim/Esim Viettel 5G có 8GB data/ngày kèm TV360 4K – miễn phí 1 tháng sử dụng (Chỉ áp dụng tại cửa hàng) <a className="text-blue-600 hover:underline ml-1">Xem chi tiết</a></span>
+                                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold flex-shrink-0 mt-0.5">
+                                    3
+                                </span>
+                                <span>
+                                    Tặng Sim/Esim Viettel 5G có 8GB data/ngày kèm TV360 4K – miễn phí 1 tháng sử dụng (Chỉ áp dụng tại cửa hàng){" "}
+                                    <a className="text-blue-600 hover:underline ml-1">Xem chi tiết</a>
+                                </span>
                             </li>
                         </ul>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className='flex flex-col mt-6'>
+                    <div className="flex flex-col mt-6">
                         <SelectQuantity
                             quantity={quantity}
                             handleQuantity={handleQuantity}
                             handleChangeQuantity={handleChangeQuantity}
                         />
-                        <Button fw disabled={isAdding} handleOnClick={handleAddToCart}>
-                            {isAdding ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}
+                        <Button fw handleOnClick={handleAddToCart} disabled={isAdding}>
+                            {isAdding ? "Đang thêm..." : "Thêm vào giỏ hàng"}
                         </Button>
                     </div>
                 </div>
             </div>
 
-            <div className='flex flex-col'>
+            <div className="flex flex-col">
                 <div className="flex shadow-md rounded-3xl border-2 p-6 mb-6 mt-4">
-                    <div className='flex-4 flex-col flex items-center justify-center'>
-                        <span className='font-semibold text-5xl pb-2'>
-                            {`${product?.totalRatings}`}<span className="text-3xl text-gray-300">/5</span>
+                    <div className="flex-4 flex-col flex items-center justify-center">
+                        <span className="font-semibold text-5xl pb-2">
+                            {`${product?.totalRatings}`}
+                            <span className="text-3xl text-gray-300">/5</span>
                         </span>
-                        <span className='flex items-center gap-1'>
+                        <span className="flex items-center gap-1">
                             {renderStarFromNumber(product?.totalRatings, 24)?.map((el, index) => (
                                 <span key={index}>{el}</span>
                             ))}
                         </span>
-                        <span className='text-lg pt-2'>{`${product?.ratings.length} đánh giá và nhận xét`}</span>
-                        <div className='flex items-center justify-center text-base flex-col gap-2'>
-                            <Button handleOnClick={handleVoteNow}>
-                                Viết đánh giá
-                            </Button>
+                        <span className="text-lg pt-2">{`${product?.ratings.length} đánh giá và nhận xét`}</span>
+                        <div className="flex items-center justify-center text-base flex-col gap-2">
+                            <Button handleOnClick={handleVoteNow}>Viết đánh giá</Button>
                         </div>
                     </div>
 
-                    <div className='flex-6 flex gap-2 flex-col'>
-                        {Array.from(Array(5).keys()).reverse().map(el => (
-                            <Votebar
-                                key={el}
-                                number={el + 1}
-                                ratingTotal={product?.ratings.length}
-                                ratingCount={product?.ratings.filter(i => i.star === el + 1)?.length}
-                            />
-                        ))}
+                    <div className="flex-6 flex gap-2 flex-col">
+                        {Array.from(Array(5).keys())
+                            .reverse()
+                            .map((el) => (
+                                <Votebar
+                                    key={el}
+                                    number={el + 1}
+                                    ratingTotal={product?.ratings.length}
+                                    ratingCount={product?.ratings.filter((i) => i.star === el + 1)?.length}
+                                />
+                            ))}
                     </div>
                 </div>
 
                 <div className="flex flex-col gap-4">
-                    {product?.ratings?.map(el => (
+                    {product?.ratings?.map((el) => (
                         <Comment
                             key={el._id}
                             star={el.star}
@@ -358,4 +401,4 @@ ${selectedColor === color
     );
 };
 
-export default DetailProduct;
+export default withBaseComponent(DetailProduct);
