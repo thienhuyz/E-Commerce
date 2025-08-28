@@ -6,7 +6,7 @@ import { useState } from 'react';
 import path from '../utils/path'
 import withBaseComponent from '../hocs/withBaseComponent'
 import Swal from 'sweetalert2'
-import { apiUpdateCart } from '../apis';
+import { apiUpdateCart, apiUpdateWishlist } from '../apis';
 import { toast } from 'react-toastify'
 import { getCurrent } from '../store/user/asyncActions';
 import { useDispatch, useSelector } from 'react-redux';
@@ -44,7 +44,7 @@ const Product = ({ productData, isNew, hideLabel, navigate, location }) => {
                 color: productData?.color,
                 quantity: 1,
                 price: productData?.price,
-                thumbnail: productData?.thumb, // ảnh theo màu đang chọn
+                thumbnail: productData?.thumb,
                 title: productData?.title,
             });
 
@@ -56,7 +56,13 @@ const Product = ({ productData, isNew, hideLabel, navigate, location }) => {
             }
 
         }
-        if (flag === 'WISHLIST') console.log('WISHLIST')
+        if (flag === 'WISHLIST') {
+            const response = await apiUpdateWishlist(productData._id)
+            if (response.success) {
+                dispatch(getCurrent())
+                toast.success(response.mes)
+            } else toast.error(response.mes)
+        }
     }
 
     return (
@@ -74,7 +80,18 @@ const Product = ({ productData, isNew, hideLabel, navigate, location }) => {
                             : <span title='Thêm vào giỏ hàng' onClick={(e) => handleClickOptions(e, 'CART')}><SelectOption icon={<BsFillCartPlusFill color='black' />} /></span>
                         }
 
-                        <span title='Thêm vào yêu thích' onClick={(e) => handleClickOptions(e, 'WISHLIST')}><SelectOption icon={<BsFillSuitHeartFill />} /></span>
+                        <span title='Thêm vào yêu thích' onClick={(e) => handleClickOptions(e, 'WISHLIST')}><SelectOption
+                            icon={
+                                <BsFillSuitHeartFill
+                                    color={
+                                        current?.wishlist?.some((i) => i === productData._id)
+                                            ? "red"
+                                            : "black"
+                                    }
+                                />
+                            }
+                        />
+                        </span>
 
                     </div>}
 
