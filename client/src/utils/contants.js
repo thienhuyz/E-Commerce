@@ -82,3 +82,13 @@ export const memberSidebar = [
         icon: <FaHeart size={20} />,
     },
 ]
+export const statusOrders = [
+    {
+        label: 'Cancalled',
+        value: 'Cancalled',
+    },
+    {
+        label: 'Succeed',
+        value: 'Succeed',
+    }
+]
